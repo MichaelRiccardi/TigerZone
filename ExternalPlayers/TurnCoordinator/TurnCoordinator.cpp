@@ -2,6 +2,9 @@
 
 
 bool TurnCoordinator::AISetup = false;
+unsigned int TurnCoordinator::ourPlayerNumber = 0;
+unsigned int TurnCoordinator::otherPlayerNumber = 0;
+gameMessage TurnCoordinator::myMessage;
 
 //Main functionality is to receive messages from the external game client and tell the AI when to take a turn.
 //It will also call the BoardManager to update opponent moves.
@@ -67,7 +70,7 @@ void TurnCoordinator::buildResponse(Move& move)
     strcpy(TurnCoordinator::myMessage.data.move.tile, (move.getTile().getTileName()).c_str());
 
     TurnCoordinator::myMessage.data.move.p1 = TurnCoordinator::ourPlayerNumber;
-
+    TurnCoordinator::myMessage.data.move.placeable = move.getPlacesTile();
     TurnCoordinator::myMessage.data.move.x = move.getCoord().getX();
     TurnCoordinator::myMessage.data.move.y = move.getCoord().getY();
     TurnCoordinator::myMessage.data.move.orientation = move.getTile().getRotation();
