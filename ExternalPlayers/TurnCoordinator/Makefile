@@ -1,7 +1,7 @@
 CC=g++
 CFLAGS=-Wall -std=c++14
 DCFLAGS=-g -D__testing
-DEPS=TurnCoordinator.h
+DEPS=TurnCoordinator.h ../AI/AI.h ../AI/FuzzyLogic.h ../../ProgramCoordinator/ProgramCoordinator.h
 CLEAN=*.o
 
 default: TurnCoordinator.o

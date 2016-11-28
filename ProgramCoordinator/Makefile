@@ -1,20 +1,18 @@
 CC=g++
 CFLAGS=-Wall -std=c++14
 DCFLAGS=-g -D__testing
-DEPS=ProgramCoordinator.h ../ExternalPlayers/TurnCoordinator/TurnCoordinator.h
-CLEAN=*.o
+DEPS=../Compiled/*.o ProgramCoordinator.h
+CLEAN=T T-Test
 
-default: ProgramCoordinator.o
+default: T
 
-tests: ProgramCoordinator-Test.o
+tests: T-Test
 
-ProgramCoordinator.o: ProgramCoordinator.cpp $(DEPS)
-	$(CC) $(CFLAGS) -c $< -o $@
-	cp -f ProgramCoordinator.o ../Compiled/ProgramCoordinator.o
+T: ExternalClient.cpp $(DEPS)
+	$(CC) $(CFLAGS) $< ../Compiled/*.o -o $@
 
-ProgramCoordinator-Test.o: ProgramCoordinator.cpp $(DEPS)
-	$(CC) $(CFLAGS) $(DCFLAGS) -c $< -o $@
-	cp -f ProgramCoordinator-Test.o ../Compiled/ProgramCoordinator.o
+T-Test.o: ExternalClient.cpp $(DEPS)
+	$(CC) $(CFLAGS) $(DCFLAGS) $< -o $@
 
 clean:
 	rm -rf $(CLEAN)

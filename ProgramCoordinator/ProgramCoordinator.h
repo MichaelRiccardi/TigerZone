@@ -1,6 +1,7 @@
+#ifndef __PROGRAM_COORDINATOR_H
+#define __PROGRAM_COORDINATOR_H
 #include <stdio.h>
 #include <stdlib.h>
-
 #include <netdb.h>
 #include <netinet/in.h>
 
@@ -55,3 +56,5 @@ struct gameMessage
     int messageType;
     messageData data;
 };
+
+#endif

@@ -83,7 +83,7 @@ void TurnCoordinator::buildResponse(Move& move)
     }*/
     //else
     //{
-    TurnCoordinator::myMessage.data.move.meepleType = 0; //None type
+    //TurnCoordinator::myMessage.data.move.meepleType = 0; //None type
     //}
 }
 
@@ -106,13 +106,13 @@ void TurnCoordinator::callAI()
 
 Move& TurnCoordinator::convertInMove(gameMessage *msg)
 {
-    Move *mv;
+    Move *mv = new Move((Tile&)BoardManager::getTopTileStack(), msg->data.move.x, msg->data.move.y, msg->data.move.orientation);
     //printf("Who's\n");
-    if(!(msg->data.move.placeable) && !(msg->data.move.pass))
-    {
-        mv = new Move((Tile&)BoardManager::getTopTileStack(), msg->data.move.pickupMeeple);
-        return (*mv);
-    }
+    //if(!(msg->data.move.placeable) && !(msg->data.move.pass))
+    //{
+    //    mv = new Move((Tile&)BoardManager::getTopTileStack(), msg->data.move.pickupMeeple);
+    //    return (*mv);
+    //}
     unsigned int zone;
     //printf("That\n");
     switch (msg->data.move.zone)
@@ -155,7 +155,7 @@ Move& TurnCoordinator::convertInMove(gameMessage *msg)
         throw std::logic_error("Top of the tile stack and current tile move do not match");
     }
     //printf("It's\n");
-    switch(msg->data.move.meepleType)
+    /*switch(msg->data.move.meepleType)
     {
         case 0:
             //No meeple
@@ -172,7 +172,7 @@ Move& TurnCoordinator::convertInMove(gameMessage *msg)
         default:
             throw std::logic_error("Unrecognized meeple type");
             break;
-    }
+    }*/
     //printf("Jess\n");
     return (*mv);
 }

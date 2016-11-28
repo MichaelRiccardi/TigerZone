@@ -14,6 +14,7 @@
 #include <thread>
 #include <mutex>
 #include <condition_variable>
+#include "../ExternalPlayers/TurnCoordinator/TurnCoordinator.h"
 
 char* TOURNAMENT_PASSWD;
 char* USERNAME;
@@ -210,6 +211,8 @@ void matchProtocol(int sockfd)
     //Create Tile Stack Message
     msg -> data.tile.lengthOfStack = 80;
     strcpy(msg -> data.tile.tileStack, tileStack.c_str());
+
+    TurnCoordinator::handleMessage(msg);
 
     //Send Tile Stack
 
