@@ -28,6 +28,7 @@ class BoardManager {
         static std::vector<Move> getValidMoves(const Tile& tile);
         static std::vector<Move> getValidMoves(const Tile& tile, unsigned int playerNumber);
         /// Makes the given Move for the given playerNumber
+        static void makeMove(const Move& move);
         static void makeMove(const Move& move, unsigned int playerNumber);
 		/// Returns whether the given tile is fully surrounded by other tiles
 		static unsigned int isSurrounded(int tileID);

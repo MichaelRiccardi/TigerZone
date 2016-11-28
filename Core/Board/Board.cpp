@@ -7,7 +7,7 @@ TileStack tileStack(unsigned int NUMBER_OF_PLAYERS);
 const unsigned int Board::boardWidth = NUMBER_OF_PLAYABLE_TILES * 2 + 1;
 const unsigned int Board::boardHeight = NUMBER_OF_PLAYABLE_TILES * 2 + 1;
 Array<Array<Tile*>> Board::board = Array<Array<Tile*>>(boardWidth);
-int throwaway = Board::set();
+//int throwaway = Board::set();
 
 int Board::set()
 {
