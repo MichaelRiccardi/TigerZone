@@ -25,15 +25,15 @@ struct tileStackMessage
 
 struct moveMessage
 {
-    int pid;            //pid of Player
+//    int pid;            //pid of Player
     unsigned int p1;    //Player flag
     char tile[6];       //Tile Identifier
     bool placeable;     //Can you use tile?
     unsigned int x;              //X coordinate
     unsigned int y;              //Y coordinate
     unsigned int orientation;    //Orientation using network protocol offsets
-    int meepleType;     //0: NONE    1: TIGER    2: CROC
-    bool pickupMeeple;
+//    int meepleType;     //0: NONE    1: TIGER    2: CROC
+//    bool pickupMeeple;
     bool pass;
     int zone;           //Zone for meeple if TIGER
 };

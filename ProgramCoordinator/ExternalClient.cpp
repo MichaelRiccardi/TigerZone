@@ -169,17 +169,13 @@ void roundProtocol(int sockfd)
 
 void matchProtocol(int sockfd)
 {
-    ready = 0;
-    processed = 0;
-    delete msg;
-    msg = new gameMessage;
-    std::thread * GameServer1 = new std::thread(msgThread, gamePort++);
-    GameServer1 -> detach();
+
 
     //variables
     std::string oppPid, tile;
     int orientation, number_tiles, time_plan;
     char buffer[256];
+
     //Prepare Output Stream
     std::stringstream out;
 
@@ -217,15 +213,7 @@ void matchProtocol(int sockfd)
     msg -> data.tile.lengthOfStack = 80;
     strcpy(msg -> data.tile.tileStack, tileStack.c_str());
 
-    //Send Tile Stack msg
-    {std::lock_guard<std::mutex> lk(m);
-    ready = true;}
-
-    cv.notify_one();
-
-    //wait for worker
-    {std::unique_lock<std::mutex> lk(m);
-    cv.wait(lk, []{return processed;});}
+    //Send Tile Stack
 
 
 
@@ -238,16 +226,6 @@ void matchProtocol(int sockfd)
     msg -> data.move.x = 0;
     msg -> data.move.y = 0;
     msg -> data.move.orientation = (unsigned int)orientation;
-
-    //notify of first move
-    {std::lock_guard<std::mutex> lk(m);
-    ready = true;}
-
-    cv.notify_one();
-
-    //wait for worker
-    {std::unique_lock<std::mutex> lk(m);
-    cv.wait(lk, []{return processed;});}
 
 
     //Server: MATCH BEGINS IN <timeplan> SECONDS
@@ -295,17 +273,6 @@ void moveProtocol(int sockfd)
 
     //Create Move Message and Pass to INTERNAL Server
     strcpy(msg -> data.move.tile, tile.c_str());
-
-    {std::lock_guard<std::mutex> lk(m);
-    ready = true;}
-
-    cv.notify_one();
-
-    //wait for worker
-    {std::unique_lock<std::mutex> lk(m);
-    cv.wait(lk, []{return processed;});}
-
-
 
     //Await response
 
@@ -369,39 +336,4 @@ std::string strAtIndex(std::string buffer, int index)
     while(getline(in, s, ' '))
       strings.push_back(s);
      return strings[index];
-}
-
-void msgThread(int gamePort)
-{
-    int sockfd, newsockfd, portno, pid;
-    socklen_t clilen;
-    struct sockaddr_in serv_addr, cli_addr;
-
-    sockfd = socket(AF_INET, SOCK_STREAM, 0);
-
-    bzero((char *) &serv_addr, sizeof(serv_addr));
-    portno = gamePort;
-    serv_addr.sin_family = AF_INET;
-    serv_addr.sin_addr.s_addr = INADDR_ANY;
-    serv_addr.sin_port = htons(portno);
-    bind(sockfd, (struct sockaddr *) &serv_addr,sizeof(serv_addr));
-    listen(sockfd,5);
-    clilen = sizeof(cli_addr);
-
-            bool exit = false;
-
-                std::unique_lock<std::mutex> lk(m);
-                cv.wait(lk, []{return ready;});
-
-                //stuff
-
-                processed = true;
-
-
-                //un_lock
-                lk.unlock();
-                cv.notify_one();
-
-
-    close(sockfd);
 }
