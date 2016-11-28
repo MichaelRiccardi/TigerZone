@@ -150,7 +150,7 @@ std::vector<Move> BoardManager::getValidMoves(const Tile& tile, unsigned int pla
         }
     }
 
-    if(validMoves.size() == 0) // special cases woo
+    /*if(validMoves.size() == 0) // special cases woo
     {
         validMoves.push_back(Move(false)); // pass
         for(unsigned int i = 7 * (playerNumber - 1); i < (7 * playerNumber); i++)
@@ -163,7 +163,7 @@ std::vector<Move> BoardManager::getValidMoves(const Tile& tile, unsigned int pla
                 validMoves.push_back(Move(meepleTile, false)); // remove
             }
         }
-    }
+    }*/
 
     return validMoves;
 }
