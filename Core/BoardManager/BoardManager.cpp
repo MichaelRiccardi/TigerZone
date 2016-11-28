@@ -116,7 +116,7 @@ std::vector<Move> BoardManager::getValidMoves(const Tile& tile, unsigned int pla
 {
     std::vector<Move> validMoves;
     std::unordered_set<unsigned int> availableLocations = Board::getAvailableLocations();
-    unsigned int daveTigerOrder[9] = { 0, 1, 2, 10, 12, 4, 8, 7, 5 };
+    //unsigned int daveTigerOrder[9] = { 0, 1, 2, 10, 12, 4, 8, 7, 5 };
 
     for(const int gridId : availableLocations)
     {
@@ -132,7 +132,7 @@ std::vector<Move> BoardManager::getValidMoves(const Tile& tile, unsigned int pla
             {
                 validMoves.push_back(Move(tileCopy, Coord(location), rotation)); // no meeple or croc
 
-                for(unsigned int daveTigerIndex = 0; daveTigerIndex < 9; daveTigerIndex++)
+                /*for(unsigned int daveTigerIndex = 0; daveTigerIndex < 9; daveTigerIndex++)
                 {
                     unsigned int edgeIndex = daveTigerOrder[daveTigerIndex];
 
@@ -145,7 +145,7 @@ std::vector<Move> BoardManager::getValidMoves(const Tile& tile, unsigned int pla
                 if(GameRules::validCrocPlacement(tile, location))
                 {
                     validMoves.push_back(Move(tileCopy, Coord(location), rotation, true));
-                }
+                }*/
             }   
         }
     }
@@ -179,14 +179,14 @@ void BoardManager::makeMove(const Move& move, unsigned int playerNumber)
     const Tile ** borderingTiles = Board::getBorderingTiles(tile);
     //Regions::addConnection(tile, borderingTiles);
 
-    if(move.getMeepleLocation() != -1) // if Move includes Meeple
+    /*if(move.getMeepleLocation() != -1) // if Move includes Meeple
     {
         Regions::addMeeple(playerNumber, tile.getId(), move.getMeepleLocation());
     }
     else if(move.getHasCrocodile())
     {
         Regions::addCroc(playerNumber, tile.getId());
-    }
+    }*/
 
     tile.placeTile(); // mark Tile as placed so it can no longer be rotated
     tileStack->pop(); // remove top Tile from list
