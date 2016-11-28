@@ -5,7 +5,6 @@ unsigned int TurnCoordinator::ourPlayerNumber = 0;
 unsigned int TurnCoordinator::otherPlayerNumber = 0;
 bool TurnCoordinator::AISetup = false;
 int TurnCoordinator::mySocket = 0;
-int TurnCoordinator::clientSocket = 0;
 struct sockaddr_in *TurnCoordinator::myAddr = NULL;
 struct sockaddr_in *TurnCoordinator::clientAddr = NULL;
 
@@ -17,39 +16,35 @@ TurnCoordinator::TurnCoordinator(int port)
     TurnCoordinator::AISetup = false;
     TurnCoordinator::ourPlayerNumber = 0;
     TurnCoordinator::otherPlayerNumber = 0;
+
     TurnCoordinator::myAddr = new struct sockaddr_in;
-    TurnCoordinator::clientAddr = new struct sockaddr_in;
+
     setupSocket(port);
 }
 
 TurnCoordinator::~TurnCoordinator()
 {
-    close(TurnCoordinator::clientSocket);
     close(TurnCoordinator::mySocket);
 }
 
-void TurnCoordinator::setupSocket(int portNumber)
+void TurnCoordinator::setupSocket(std::string hostname, int portNumber)
 {
-    /* First call to socket() function */
-    TurnCoordinator::mySocket = socket(AF_INET, SOCK_STREAM, 0);
-   
-    if (TurnCoordinator::mySocket < 0) 
-    {
-        throw std::runtime_error("ERROR opening socket");
-    }
-   
-    /* Initialize socket structure */
-    bzero((char *) TurnCoordinator::myAddr, sizeof(*TurnCoordinator::myAddr));
-   
-    TurnCoordinator::myAddr->sin_family = AF_INET;
-    TurnCoordinator::myAddr->sin_addr.s_addr = INADDR_ANY;
-    TurnCoordinator::myAddr->sin_port = htons(portNumber);
-   
-   /* Now bind the host address using bind() call.*/
-    if (bind(TurnCoordinator::mySocket, (struct sockaddr *) TurnCoordinator::myAddr, sizeof(*TurnCoordinator::myAddr)) < 0) 
-    {
-        throw std::runtime_error("ERROR binding socket");
-    }
+    int sockfd;
+    struct sockaddr_in serv_addr;
+    TurnCoordinator::myAddr = &serv_addr;
+    struct hostent *server;
+    sockfd = socket(AF_INET, SOCK_STREAM, 0);
+    server = gethostbyname(hostname.c_str());
+
+    bzero((char *) &serv_addr, sizeof(serv_addr));
+    serv_addr.sin_family = AF_INET;
+    bcopy((char *)server->h_addr,
+         (char *)&serv_addr.sin_addr.s_addr,
+         server->h_length);
+    serv_addr.sin_port = htons(portno);
+    connect(sockfd,(struct sockaddr *) &serv_addr,sizeof(serv_addr));
+
+    TurnCoordinator::mySocket = sockfd;
 }
 
 void TurnCoordinator::setUpAI()
@@ -118,7 +113,7 @@ gameMessage TurnCoordinator::buildResponse(Move& move)
     gMsg->data.move.x = move.getCoord().getX();
     gMsg->data.move.y = move.getCoord().getY();
     gMsg->data.move.orientation = move.getTile().getRotation();
-    
+
     /*if(move.getHasCrocodile())
     {
         gMsg->data.move.meepleType = 2; //Croc Type
@@ -155,7 +150,7 @@ void TurnCoordinator::callAI()
 
     int n = write(TurnCoordinator::clientSocket, (char *)(&msg), sizeof(msg));
 
-    if (n < 0) 
+    if (n < 0)
     {
         throw std::runtime_error("ERROR writing to socket");
     }
@@ -266,7 +261,7 @@ void TurnCoordinator::handleMessage(gameMessage *msg)
             }
             else
             {
-                if(!strcmp((BoardManager::getTopTileStack()).getTileName().c_str(), msg->data.move.tile)) 
+                if(!strcmp((BoardManager::getTopTileStack()).getTileName().c_str(), msg->data.move.tile))
                 {
                     throw std::logic_error("Top of the tile stack and current tile move do not match");
                 }
@@ -282,7 +277,7 @@ void TurnCoordinator::handleMessage(gameMessage *msg)
             else
             {
                 TurnCoordinator::otherPlayerNumber = 1;
-                TurnCoordinator::ourPlayerNumber = 2;                
+                TurnCoordinator::ourPlayerNumber = 2;
             }
             TurnCoordinator::setUpAI();
             break;
@@ -319,16 +314,16 @@ void TurnCoordinator::receiveMessage()
 
     while(true)
     {
-        if (TurnCoordinator::clientSocket < 0) 
+        if (TurnCoordinator::mySocket < 0)
         {
             throw std::runtime_error("ERROR on accept");
         }
 
         //Clear out any previous data
         bzero(buffer, sizeof(gameMessage));
-        n = read(TurnCoordinator::clientSocket, buffer, sizeof(gameMessage) - 1);
+        n = read(TurnCoordinator::mySocket, buffer, sizeof(gameMessage) - 1);
 
-        if (n < 0) 
+        if (n < 0)
         {
             throw std::runtime_error("ERROR reading from socket");
         }
