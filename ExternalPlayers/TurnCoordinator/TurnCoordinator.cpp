@@ -1,51 +1,10 @@
 #include "TurnCoordinator.h"
 
 
-unsigned int TurnCoordinator::ourPlayerNumber = 0;
-unsigned int TurnCoordinator::otherPlayerNumber = 0;
 bool TurnCoordinator::AISetup = false;
-int TurnCoordinator::mySocket = 0;
-struct sockaddr_in *TurnCoordinator::myAddr = NULL;
-struct sockaddr_in *TurnCoordinator::clientAddr = NULL;
 
 //Main functionality is to receive messages from the external game client and tell the AI when to take a turn.
 //It will also call the BoardManager to update opponent moves.
-
-TurnCoordinator::TurnCoordinator(int port)
-{
-    TurnCoordinator::AISetup = false;
-    TurnCoordinator::ourPlayerNumber = 0;
-    TurnCoordinator::otherPlayerNumber = 0;
-
-    TurnCoordinator::myAddr = new struct sockaddr_in;
-
-    setupSocket(port);
-}
-
-TurnCoordinator::~TurnCoordinator()
-{
-    close(TurnCoordinator::mySocket);
-}
-
-void TurnCoordinator::setupSocket(std::string hostname, int portNumber)
-{
-    int sockfd;
-    struct sockaddr_in serv_addr;
-    TurnCoordinator::myAddr = &serv_addr;
-    struct hostent *server;
-    sockfd = socket(AF_INET, SOCK_STREAM, 0);
-    server = gethostbyname(hostname.c_str());
-
-    bzero((char *) &serv_addr, sizeof(serv_addr));
-    serv_addr.sin_family = AF_INET;
-    bcopy((char *)server->h_addr,
-         (char *)&serv_addr.sin_addr.s_addr,
-         server->h_length);
-    serv_addr.sin_port = htons(portno);
-    connect(sockfd,(struct sockaddr *) &serv_addr,sizeof(serv_addr));
-
-    TurnCoordinator::mySocket = sockfd;
-}
 
 void TurnCoordinator::setUpAI()
 {
@@ -102,17 +61,16 @@ int TurnCoordinator::convertEdgeToZone(int edge)
 }
 
 
-gameMessage TurnCoordinator::buildResponse(Move& move)
+void TurnCoordinator::buildResponse(Move& move)
 {
-    gameMessage *gMsg = new gameMessage;
-    gMsg->messageType = 1;
-    strcpy(gMsg->data.move.tile, (move.getTile().getTileName()).c_str());
+    TurnCoordinator::myMessage.messageType = 1;
+    strcpy(TurnCoordinator::myMessage.data.move.tile, (move.getTile().getTileName()).c_str());
 
-    gMsg->data.move.p1 = TurnCoordinator::ourPlayerNumber;
+    TurnCoordinator::myMessage.data.move.p1 = TurnCoordinator::ourPlayerNumber;
 
-    gMsg->data.move.x = move.getCoord().getX();
-    gMsg->data.move.y = move.getCoord().getY();
-    gMsg->data.move.orientation = move.getTile().getRotation();
+    TurnCoordinator::myMessage.data.move.x = move.getCoord().getX();
+    TurnCoordinator::myMessage.data.move.y = move.getCoord().getY();
+    TurnCoordinator::myMessage.data.move.orientation = move.getTile().getRotation();
 
     /*if(move.getHasCrocodile())
     {
@@ -125,11 +83,8 @@ gameMessage TurnCoordinator::buildResponse(Move& move)
     }*/
     //else
     //{
-        gMsg->data.move.meepleType = 0; //None type
+    TurnCoordinator::myMessage.data.move.meepleType = 0; //None type
     //}
-
-
-    return *gMsg;
 }
 
 
@@ -146,14 +101,7 @@ void TurnCoordinator::callAI()
     Move chosenMove = AI::chooseTurn(BoardManager::getTopTileStack());
     BoardManager::makeMove(chosenMove, TurnCoordinator::ourPlayerNumber);
 
-    gameMessage msg = TurnCoordinator::buildResponse(chosenMove);
-
-    int n = write(TurnCoordinator::clientSocket, (char *)(&msg), sizeof(msg));
-
-    if (n < 0)
-    {
-        throw std::runtime_error("ERROR writing to socket");
-    }
+    TurnCoordinator::buildResponse(chosenMove);
 }
 
 Move& TurnCoordinator::convertInMove(gameMessage *msg)
@@ -286,49 +234,3 @@ void TurnCoordinator::handleMessage(gameMessage *msg)
     }
 }
 
-void TurnCoordinator::startCoordinator()
-{
-
-    int clilen;
-    struct sockaddr_in cli_addr;
-
-    //Wait for a connection
-    listen(TurnCoordinator::mySocket,5);
-    clilen = sizeof(cli_addr);
-
-    //Accept the new connection
-    TurnCoordinator::clientSocket = accept(TurnCoordinator::mySocket, (struct sockaddr *) &cli_addr,(socklen_t *) &clilen);
-
-    //Hanlde any game init stuff.
-
-    TurnCoordinator::receiveMessage();
-}
-
-
-void TurnCoordinator::receiveMessage()
-{
-    int n;
-
-    char buffer[sizeof(gameMessage)]; //Change to message struct.
-    gameMessage *msg = (gameMessage *)(&buffer);
-
-    while(true)
-    {
-        if (TurnCoordinator::mySocket < 0)
-        {
-            throw std::runtime_error("ERROR on accept");
-        }
-
-        //Clear out any previous data
-        bzero(buffer, sizeof(gameMessage));
-        n = read(TurnCoordinator::mySocket, buffer, sizeof(gameMessage) - 1);
-
-        if (n < 0)
-        {
-            throw std::runtime_error("ERROR reading from socket");
-        }
-
-        //Handle message here
-        TurnCoordinator::handleMessage(msg);
-    }
-}
