@@ -173,7 +173,7 @@ std::vector<Move> BoardManager::getValidMoves(const Tile& tile, unsigned int pla
     return BoardManager::getValidMoves(tile);
 }
 
-void BoardManager::makeMove(const Move& move, unsigned int playerNumber)
+void BoardManager::makeMove(const Move& move)
 {
     // if calling this method, it is assumed that this is a legal move
     Board::place(move);
@@ -195,6 +195,11 @@ void BoardManager::makeMove(const Move& move, unsigned int playerNumber)
 
     tile.placeTile(); // mark Tile as placed so it can no longer be rotated
     tileStack->pop(); // remove top Tile from list
+}
+
+void BoardManager::makeMove(const Move& move, unsigned int playerNumber)
+{
+    BoardManager::makeMove(move);
 }
 
 
