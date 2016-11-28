@@ -114,11 +114,6 @@ Tile& BoardManager::getTopTileStack()
 
 std::vector<Move> BoardManager::getValidMoves(const Tile& tile)
 {
-    return BoardManager::getValidMoves(tile, 1);
-}
-
-std::vector<Move> BoardManager::getValidMoves(const Tile& tile, unsigned int playerNumber)
-{
     std::vector<Move> validMoves;
     std::unordered_set<unsigned int> availableLocations = Board::getAvailableLocations();
     //unsigned int daveTigerOrder[9] = { 0, 1, 2, 10, 12, 4, 8, 7, 5 };
@@ -171,6 +166,11 @@ std::vector<Move> BoardManager::getValidMoves(const Tile& tile, unsigned int pla
     }
 
     return validMoves;
+}
+
+std::vector<Move> BoardManager::getValidMoves(const Tile& tile, unsigned int playerNumber)
+{
+    return BoardManager::getValidMoves(tile);
 }
 
 void BoardManager::makeMove(const Move& move, unsigned int playerNumber)

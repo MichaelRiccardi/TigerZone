@@ -119,7 +119,7 @@ gameMessage TurnCoordinator::buildResponse(Move& move)
     gMsg->data.move.y = move.getCoord().getY();
     gMsg->data.move.orientation = move.getTile().getRotation();
     
-    if(move.getHasCrocodile())
+    /*if(move.getHasCrocodile())
     {
         gMsg->data.move.meepleType = 2; //Croc Type
     }
@@ -127,11 +127,11 @@ gameMessage TurnCoordinator::buildResponse(Move& move)
     {
         gMsg->data.move.meepleType = 1; //Meeple Type
         gMsg->data.move.zone = TurnCoordinator::convertEdgeToZone(move.getMeepleLocation());
-    }
-    else
-    {
+    }*/
+    //else
+    //{
         gMsg->data.move.meepleType = 0; //None type
-    }
+    //}
 
 
     return *gMsg;
