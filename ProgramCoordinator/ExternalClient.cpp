@@ -11,11 +11,21 @@
 #include <iostream>
 #include "ProgramCoordinator.h"
 #include <vector>
+#include <thread>
+#include <mutex>
+#include <condition_variable>
 
 char* TOURNAMENT_PASSWD;
 char* USERNAME;
 char* PASSWD;
+bool END_OF_CHALLENGES = 0;
 int pid;
+int gamePort = 55555;
+std::mutex m;
+std::condition_variable cv;
+bool ready = 0;
+bool processed = 0;
+struct gameMessage* msg = new struct gameMessage;
 
 int createSocket(std::string, int);
 void authenticationProtocol(int);
@@ -24,6 +34,7 @@ void roundProtocol(int);
 void matchProtocol(int);
 void moveProtocol(int);
 std::string strAtIndex(std::string,int);
+void msgThread(int);
 
 
 int main(int argc, char *argv[])
@@ -106,25 +117,30 @@ void authenticationProtocol(int sockfd)
 
 void challengeProtocol(int sockfd)
 {
-    std::string cid;
-    int rounds;
-    char buffer[256];
+    while(!END_OF_CHALLENGES)
+    {
+        std::string cid;
+        int rounds;
+        char buffer[256];
 
-    //Server: NEW CHALLENGE <cid> YOU WILL PLAY <rounds> MATCH
-    bzero(buffer,256);
-    read(sockfd,buffer,255);
-    printf("%s\n",buffer);
-    cid = strAtIndex(std::string(buffer),1);
-    rounds = stoi(strAtIndex(std::string(buffer),6));
+        //Server: NEW CHALLENGE <cid> YOU WILL PLAY <rounds> MATCH
+        bzero(buffer,256);
+        read(sockfd,buffer,255);
+        printf("%s\n",buffer);
+        cid = strAtIndex(std::string(buffer),1);
+        rounds = stoi(strAtIndex(std::string(buffer),6));
 
-    //roundProtocol
-    for(int i = 0; i < rounds; i++)
-        roundProtocol(sockfd);
+        //roundProtocol
+        for(int i = 0; i < rounds; i++)
+            roundProtocol(sockfd);
 
-   //Server: END OF CHALLENGES or PLEASE WAIT
-    bzero(buffer,256);
-    read(sockfd,buffer,255);
-    printf("%s\n",buffer);
+       //Server: END OF CHALLENGES or PLEASE WAIT
+        bzero(buffer,256);
+        read(sockfd,buffer,255);
+        printf("%s\n",buffer);
+        if(strAtIndex(std::string(buffer),0).compare("END")==0)
+        END_OF_CHALLENGES = 1;
+    }
 
 }
 
@@ -152,10 +168,18 @@ void roundProtocol(int sockfd)
 
 void matchProtocol(int sockfd)
 {
+    ready = 0;
+    processed = 0;
+    delete msg;
+    msg = new gameMessage;
+    std::thread * GameServer1 = new std::thread(msgThread, gamePort++);
+    GameServer1 -> detach();
+
+    //variables
     std::string oppPid, tile;
     int x, y, orientation, number_tiles, time_plan;
     char buffer[256];
-    //Prepare Output and Input Stream
+    //Prepare Output Stream
     std::stringstream out;
 
     //Server: YOUR OPPONENT IS PLAYER <pid>
@@ -163,8 +187,6 @@ void matchProtocol(int sockfd)
     read(sockfd,buffer,255);
     printf("%s\n",buffer);
      oppPid = strAtIndex(buffer,4);
-
-    //Create Game Instances
 
     //Server: STARTING TILE IS <tile> AT <x> <y> <orientation>
     bzero(buffer,256);
@@ -188,13 +210,23 @@ void matchProtocol(int sockfd)
     out<<tile;
     for(int i = 0; i < number_tiles;i++)
         out<<strAtIndex(std::string(buffer),6+i);
-
-    //Create Tile Stack Massage
-    struct gameMessage* msg = new struct gameMessage;
+    tileStack = out.str();
+    //Create Tile Stack Message
     msg -> data.tile.lengthOfStack = 80;
     strcpy(msg -> data.tile.tileStack, tileStack.c_str());
 
-    //add tileStack to message once thats operational
+    //Send Tile Stack msg
+    {std::lock_guard<std::mutex> lk(m);
+    ready = true;}
+
+    cv.notify_one();
+
+    //wait for worker
+    {std::unique_lock<std::mutex> lk(m);
+    cv.wait(lk, []{return processed;});}
+
+
+
     std::cout<<"TILE STACK: "<<out.str()<<std::endl;
     out.str("");
 
@@ -226,6 +258,7 @@ void matchProtocol(int sockfd)
     bzero(buffer,256);
     read(sockfd,buffer,255);
     printf("%s\n",buffer);
+
 }
 
 void moveProtocol(int sockfd)
@@ -256,7 +289,7 @@ void moveProtocol(int sockfd)
     //Await response
 
     //Respond to Tournament Server With Move
-    int response;
+    int response = 1;
     bzero(buffer,256);
 
     switch (response) {
@@ -267,14 +300,14 @@ void moveProtocol(int sockfd)
             out<<"GAME "<<gid<<" MOVE "<<moveNum<<" PLACE "<< tile <<" AT <x> <y> <orientation> NONE";
             break;
         case 2:
-            out<<"GAME "<<gid<<" MOVE "<<moveNum<<" PLACE <tile> AT <x> <y> <orientation> TIGER";
+            out<<"GAME "<<gid<<" MOVE "<<moveNum<<" PLACE "<<tile<<" AT <x> <y> <orientation> TIGER";
             break;
         case 3:
             out<<"GAME "<<gid<<" MOVE "<<moveNum<<" PLACE "<< tile <<" AT <x> <y> <orientation> CROCODILE";
             break;
     }
 
-    std::cout<<"\t"<<out.str()<<std::endl;
+    std::cout<<out.str()<<std::endl;
     write(sockfd,out.str().c_str(),out.gcount()+1);
     out.str("");
 
@@ -315,4 +348,39 @@ std::string strAtIndex(std::string buffer, int index)
     while(getline(in, s, ' '))
       strings.push_back(s);
      return strings[index];
+}
+
+void msgThread(int gamePort)
+{
+    int sockfd, newsockfd, portno, pid;
+    socklen_t clilen;
+    struct sockaddr_in serv_addr, cli_addr;
+
+    sockfd = socket(AF_INET, SOCK_STREAM, 0);
+
+    bzero((char *) &serv_addr, sizeof(serv_addr));
+    portno = gamePort;
+    serv_addr.sin_family = AF_INET;
+    serv_addr.sin_addr.s_addr = INADDR_ANY;
+    serv_addr.sin_port = htons(portno);
+    bind(sockfd, (struct sockaddr *) &serv_addr,sizeof(serv_addr));
+    listen(sockfd,5);
+    clilen = sizeof(cli_addr);
+
+            bool exit = false;
+
+                std::unique_lock<std::mutex> lk(m);
+                cv.wait(lk, []{return ready;});
+
+                //stuff
+                
+                processed = true;
+
+
+                //un_lock
+                lk.unlock();
+                cv.notify_one();
+
+
+    close(sockfd);
 }
