@@ -22,8 +22,6 @@ bool END_OF_CHALLENGES = 0;
 int pid;
 int gamePort = 55555;
 int x,y;
-std::mutex m;
-std::condition_variable cv;
 bool ready = 0;
 bool processed = 0;
 struct gameMessage* msg = new struct gameMessage;
