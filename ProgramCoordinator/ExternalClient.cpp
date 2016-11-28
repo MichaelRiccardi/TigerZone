@@ -11,15 +11,14 @@
 #include <iostream>
 #include "ProgramCoordinator.h"
 #include <vector>
-#include <thread>
-#include <mutex>
-#include <condition_variable>
 #include "../ExternalPlayers/TurnCoordinator/TurnCoordinator.h"
+#include <time.h>
 
 char* TOURNAMENT_PASSWD;
 char* USERNAME;
 char* PASSWD;
 bool END_OF_CHALLENGES = 0;
+std::string gif = "BABA";
 int pid;
 int gamePort = 55555;
 int x,y;
@@ -173,20 +172,20 @@ void matchProtocol(int sockfd)
     //variables
     std::string oppPid, tile;
     int orientation, number_tiles, time_plan;
-    char buffer[256];
+    char buffer[451];
 
     //Prepare Output Stream
     std::stringstream out;
 
     //Server: YOUR OPPONENT IS PLAYER <pid>
-    bzero(buffer,256);
-    read(sockfd,buffer,255);
+    bzero(buffer,451);
+    read(sockfd,buffer,450);
     printf("%s\n",buffer);
      oppPid = strAtIndex(buffer,4);
 
     //Server: STARTING TILE IS <tile> AT <x> <y> <orientation>
-    bzero(buffer,256);
-    read(sockfd,buffer,255);
+    bzero(buffer,451);
+    read(sockfd,buffer,450);
     printf("%s\n",buffer);
     tile = strAtIndex(std::string(buffer),3);
     x = stoi(strAtIndex(std::string(buffer),5));
@@ -196,8 +195,8 @@ void matchProtocol(int sockfd)
     //PASS STARTING TILE TO INTERNAL SERVER
 
     //Server: THE REMAINING <number_tiles> TILES ARE [ <tiles> ]
-    bzero(buffer,256);
-    read(sockfd,buffer,255);
+    bzero(buffer,451);
+    read(sockfd,buffer,450);
     printf("%s\n",buffer);
     number_tiles = stoi(strAtIndex(std::string(buffer),2));
 
@@ -209,6 +208,7 @@ void matchProtocol(int sockfd)
     tileStack = out.str();
 
     //Create Tile Stack Message
+    msg -> messageType = 1;
     msg -> data.tile.lengthOfStack = 80;
     strcpy(msg -> data.tile.tileStack, tileStack.c_str());
 
@@ -220,13 +220,17 @@ void matchProtocol(int sockfd)
 
     std::cout<<"TILE STACK: "<<out.str()<<std::endl;
     out.str("");
+    delete msg;
+    msg = new struct gameMessage;
 
     //Custom Move
+    msg -> messageType = 2;
     msg -> data.move.p1 = 3;
     strcpy(msg -> data.move.tile, tile.c_str());
-    msg -> data.move.x = 0;
-    msg -> data.move.y = 0;
+    msg -> data.move.x = 76;
+    msg -> data.move.y = 76;
     msg -> data.move.orientation = (unsigned int)orientation;
+    TurnCoordinator::handleMessage(msg);
 
 
     //Server: MATCH BEGINS IN <timeplan> SECONDS
@@ -261,24 +265,32 @@ void moveProtocol(int sockfd)
 
     //Prepare Output and msg
     std::stringstream out;
-    struct gameMessage* msg = new struct gameMessage;
 
     //Server: MAKE YOUR MOVE IN GAME <gid> WITHIN <timemove> SECOND: MOVE <#> PLACE <tile>
     bzero(buffer,256);
     read(sockfd,buffer,255);
     printf("%s\n",buffer);
+
     gid = strAtIndex(std::string(buffer),5);
+    if (gif.compare("BABA")==0) gif = gid;
     timeMove = stoi(strAtIndex(std::string(buffer),7));
     moveNum = stoi(strAtIndex(std::string(buffer),10));
     tile = strAtIndex(std::string(buffer),12);
 
+if(gid.compare(gif) == 0){
     //Create Move Message and Pass to INTERNAL Server
+    delete msg;
+    msg = new struct gameMessage;
+    msg -> messageType = 2;
     strcpy(msg -> data.move.tile, tile.c_str());
+    TurnCoordinator::handleMessage(msg);
+    sleep(250);
+    *msg = TurnCoordinator::getMessage();
 
     //Await response
 
     //Respond to Tournament Server With Move
-    int response = 1;
+    int response = msg -> data.move.placeable;
     bzero(buffer,256);
 
     switch (response) {
@@ -286,15 +298,17 @@ void moveProtocol(int sockfd)
             out<<"GAME "<<gid<<" MOVE "<<moveNum<<" TILE "<< tile <<" UNPLACEABLE PASS";
             break;
         case 1:
-            out<<"GAME "<<gid<<" MOVE "<<moveNum<<" PLACE "<< tile <<" AT "<<(int)msg->data.move.x + x<<" "<<(int)msg->data.move.y + y<<" "<<(int)msg->data.move.orientation<<" NONE";
+            out<<"GAME "<<gid<<" MOVE "<<moveNum<<" PLACE "<< tile <<" AT "<<(int)msg->data.move.x + x -76<<" "<<(int)msg->data.move.y + y -76<<" "<<(int)msg->data.move.orientation<<" NONE";
             break;
-        case 2:
-            out<<"GAME "<<gid<<" MOVE "<<moveNum<<" PLACE "<<tile<<" AT "<<(int)msg->data.move.x + x<<" "<<(int)msg->data.move.y + y<<" "<<(int)msg->data.move.orientation<<" TIGER";
-            break;
-        case 3:
-            out<<"GAME "<<gid<<" MOVE "<<moveNum<<" PLACE "<< tile <<" AT "<<(int)msg->data.move.x + x<<" "<<(int)msg->data.move.y + y<<" "<<(int)msg->data.move.orientation<<" CROCODILE";
-            break;
+        // case 2:
+        //     out<<"GAME "<<gid<<" MOVE "<<moveNum<<" PLACE "<<tile<<" AT "<<(int)msg->data.move.x + x<<" "<<(int)msg->data.move.y + y<<" "<<(int)msg->data.move.orientation<<" TIGER";
+        //     break;
+        // case 3:
+        //     out<<"GAME "<<gid<<" MOVE "<<moveNum<<" PLACE "<< tile <<" AT "<<(int)msg->data.move.x + x<<" "<<(int)msg->data.move.y + y<<" "<<(int)msg->data.move.orientation<<" CROCODILE";
+        //     break;
     }
+    }
+
 
     std::cout<<out.str()<<std::endl;
     write(sockfd,out.str().c_str(),out.gcount()+1);
