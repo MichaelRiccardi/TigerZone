@@ -12,7 +12,7 @@ T: ExternalClient.cpp $(DEPS)
 	$(CC) $(CFLAGS) $< ../Compiled/*.o -o $@
 
 T-Test.o: ExternalClient.cpp $(DEPS)
-	$(CC) $(CFLAGS) $(DCFLAGS) $< -o $@
+	$(CC) $(CFLAGS) $(DCFLAGS) $< ../Compiled/*.o -o $@
 
 clean:
 	rm -rf $(CLEAN)
