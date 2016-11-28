@@ -21,6 +21,7 @@ char* PASSWD;
 bool END_OF_CHALLENGES = 0;
 int pid;
 int gamePort = 55555;
+int x,y;
 std::mutex m;
 std::condition_variable cv;
 bool ready = 0;
@@ -177,7 +178,7 @@ void matchProtocol(int sockfd)
 
     //variables
     std::string oppPid, tile;
-    int x, y, orientation, number_tiles, time_plan;
+    int orientation, number_tiles, time_plan;
     char buffer[256];
     //Prepare Output Stream
     std::stringstream out;
@@ -211,6 +212,7 @@ void matchProtocol(int sockfd)
     for(int i = 0; i < number_tiles;i++)
         out<<strAtIndex(std::string(buffer),6+i);
     tileStack = out.str();
+
     //Create Tile Stack Message
     msg -> data.tile.lengthOfStack = 80;
     strcpy(msg -> data.tile.tileStack, tileStack.c_str());
@@ -236,6 +238,16 @@ void matchProtocol(int sockfd)
     msg -> data.move.x = 0;
     msg -> data.move.y = 0;
     msg -> data.move.orientation = (unsigned int)orientation;
+
+    //notify of first move
+    {std::lock_guard<std::mutex> lk(m);
+    ready = true;}
+
+    cv.notify_one();
+
+    //wait for worker
+    {std::unique_lock<std::mutex> lk(m);
+    cv.wait(lk, []{return processed;});}
 
 
     //Server: MATCH BEGINS IN <timeplan> SECONDS
@@ -284,6 +296,15 @@ void moveProtocol(int sockfd)
     //Create Move Message and Pass to INTERNAL Server
     strcpy(msg -> data.move.tile, tile.c_str());
 
+    {std::lock_guard<std::mutex> lk(m);
+    ready = true;}
+
+    cv.notify_one();
+
+    //wait for worker
+    {std::unique_lock<std::mutex> lk(m);
+    cv.wait(lk, []{return processed;});}
+
 
 
     //Await response
@@ -297,13 +318,13 @@ void moveProtocol(int sockfd)
             out<<"GAME "<<gid<<" MOVE "<<moveNum<<" TILE "<< tile <<" UNPLACEABLE PASS";
             break;
         case 1:
-            out<<"GAME "<<gid<<" MOVE "<<moveNum<<" PLACE "<< tile <<" AT <x> <y> <orientation> NONE";
+            out<<"GAME "<<gid<<" MOVE "<<moveNum<<" PLACE "<< tile <<" AT "<<(int)msg->data.move.x + x<<" "<<(int)msg->data.move.y + y<<" "<<(int)msg->data.move.orientation<<" NONE";
             break;
         case 2:
-            out<<"GAME "<<gid<<" MOVE "<<moveNum<<" PLACE "<<tile<<" AT <x> <y> <orientation> TIGER";
+            out<<"GAME "<<gid<<" MOVE "<<moveNum<<" PLACE "<<tile<<" AT "<<(int)msg->data.move.x + x<<" "<<(int)msg->data.move.y + y<<" "<<(int)msg->data.move.orientation<<" TIGER";
             break;
         case 3:
-            out<<"GAME "<<gid<<" MOVE "<<moveNum<<" PLACE "<< tile <<" AT <x> <y> <orientation> CROCODILE";
+            out<<"GAME "<<gid<<" MOVE "<<moveNum<<" PLACE "<< tile <<" AT "<<(int)msg->data.move.x + x<<" "<<(int)msg->data.move.y + y<<" "<<(int)msg->data.move.orientation<<" CROCODILE";
             break;
     }
 
@@ -373,7 +394,7 @@ void msgThread(int gamePort)
                 cv.wait(lk, []{return ready;});
 
                 //stuff
-                
+
                 processed = true;
 
 
