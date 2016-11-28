@@ -112,6 +112,11 @@ Tile& BoardManager::getTopTileStack()
     return tileStack->front();
 }
 
+std::vector<Move> BoardManager::getValidMoves(const Tile& tile)
+{
+    return BoardManager::getValidMoves(tile, 1);
+}
+
 std::vector<Move> BoardManager::getValidMoves(const Tile& tile, unsigned int playerNumber)
 {
     std::vector<Move> validMoves;
@@ -150,10 +155,10 @@ std::vector<Move> BoardManager::getValidMoves(const Tile& tile, unsigned int pla
         }
     }
 
-    /*if(validMoves.size() == 0) // special cases woo
+    if(validMoves.size() == 0) // special cases woo
     {
         validMoves.push_back(Move(false)); // pass
-        for(unsigned int i = 7 * (playerNumber - 1); i < (7 * playerNumber); i++)
+        /*for(unsigned int i = 7 * (playerNumber - 1); i < (7 * playerNumber); i++)
         {
             if(Regions::ownerMeepleInUse(i))
             {
@@ -162,8 +167,8 @@ std::vector<Move> BoardManager::getValidMoves(const Tile& tile, unsigned int pla
                 validMoves.push_back(Move(meepleTile, true)); // place another
                 validMoves.push_back(Move(meepleTile, false)); // remove
             }
-        }
-    }*/
+        }*/
+    }
 
     return validMoves;
 }
