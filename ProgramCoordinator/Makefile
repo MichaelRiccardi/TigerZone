@@ -11,7 +11,7 @@ tests: T-Test
 T: ExternalClient.cpp $(DEPS)
 	$(CC) $(CFLAGS) $< ../Compiled/*.o -o $@
 
-T-Test.o: ExternalClient.cpp $(DEPS)
+T-Test: ExternalClient.cpp $(DEPS)
 	$(CC) $(CFLAGS) $(DCFLAGS) $< ../Compiled/*.o -o $@
 
 clean:
