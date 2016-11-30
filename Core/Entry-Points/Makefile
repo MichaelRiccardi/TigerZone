@@ -6,15 +6,12 @@ CLEAN=*.o
 
 default: TurnCoordinator-Main.o
 
-tests: TurnCoordinator-Main-Test.o
+tests: 
 
 TurnCoordinator-Main.o: Turn-Coordinator-Main.cpp $(DEPS)
 	$(CC) $(CFLAGS) -c $< -o $@
 	cp -f TurnCoordinator-Main.o ../../Compiled/TurnCoordinator-Main.o
 
-TurnCoordinator-Main-Test.o: TurnCoordinator-Test.cpp $(DEPS)
-	$(CC) $(CFLAGS) $(DCFLAGS) -c $< -o $@
-	cp -f TurnCoordinator-Test.o ../../Compiled/TurnCoordinator-Main.o
 
 clean:
 	rm -rf $(CLEAN)

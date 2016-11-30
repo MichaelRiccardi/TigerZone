@@ -23,6 +23,8 @@ TurnCoordinator::~TurnCoordinator()
 void TurnCoordinator::setupSocket(int portNumber)
 {
     /* First call to socket() function */
+    int sockfd, portno, n;
+    struct sockaddr_in serv_addr;
     struct hostent *server;
     this->mySocket = socket(AF_INET, SOCK_STREAM, 0);
    
@@ -40,11 +42,11 @@ void TurnCoordinator::setupSocket(int portNumber)
     bzero((char *) this->myAddr, sizeof(*this->myAddr));
    
     this->myAddr->sin_family = AF_INET;
-    bcopy((char *)server->h_addr, (char *)&this->clientAddr->sin_addr.s_addr, server->h_length);
+    bcopy((char *)server->h_addr, (char *)&(this->myAddr->sin_addr.s_addr), server->h_length);
     this->myAddr->sin_port = htons(portNumber);
    
    /* Now bind the host address using bind() call.*/
-    if (connect(this->mySocket, (struct sockaddr *) this->clientAddr, sizeof(this->clientAddr)) < 0) 
+    if (connect(this->mySocket, (struct sockaddr *) &(this->myAddr), sizeof((this->myAddr)) < 0))
     {
         throw std::runtime_error("ERROR connecting socket");
     }
