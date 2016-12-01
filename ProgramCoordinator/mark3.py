@@ -11,9 +11,9 @@ pid = ""
 dictionary = {}
 startingTile = ""
 
-def socketSetup(port):        # Create a socket object
+def socketSetup(port):          # Create a socket object
     host = "localhost"          # Get local machine name
-    port = int(port)     # Reserve a port for your service.
+    port = int(port)            # Reserve a port for your service.
     s.connect((host, port))     # connect
 
 
@@ -64,29 +64,61 @@ def regularPrint(tokens):
 def firstTile(tokens):
     print tokens
     global startingTile
-    startingTile += tokens[3] + tokens[5] + tokens[6] + tokens[7]
+    startingTile += startingTile + tokens[3] + tokens[5] + tokens[6] + tokens[7]
 
 def tileStack(tokens):
     print tokens
+    print startingTile[0:5]
     for i in xrange(6, int(tokens[2])+6):
         print tokens[i]
 
+def getMoveFromGame(tokens):
+    print "ask for a move from the game"
+    s.sendall("filled in")
+
+def standardMoveMessage(tokens):
+    print "regular move type"
+
+def unplaceableTile(tokens):
+    print "unplaceable tile found"
+
+def badTileMessage(tokens):
+    print "received bad tile placed"
+
+def gameOverMessage(tokens):
+    print "game over received"
+
+def notifyGameOfMove(tokens):
+    print "interpret message and send struct"
+    moveTypes[tokens[6]](tokens)
+
+
+
+
+
+moveTypes = {   "PLACED" : standardMoveMessage,
+                "TILE" : unplaceableTile,
+                "FORFEITED" : badTileMessage,    
+                "PLAYER" : badTileMessage,    
+}
+
+
 #END and GAME need to handle multiple conditions
-options = {     "THIS" : joinTourn,
-                "HELLO!" : identifyMyself,
-                "WELCOME" : printWelcome,
-                "NEW" : newChallenge,
-                "BEGIN" : beginRound,
-                "YOUR" : regularPrint,
-                "STARTING" : firstTile,
-                "THE" : tileStack,
-                "MATCH" : regularPrint,
-                "MAKE" : regularPrint,
-                "GAME" : regularPrint,
-                "END" : regularPrint,
-                "PLEASE" : regularPrint,
-                "THANK" : regularPrint,
-          }
+messageType = {     "THIS" : joinTourn,
+                    "HELLO!" : identifyMyself,
+                    "WELCOME" : printWelcome,
+                    "NEW" : newChallenge,
+                    "BEGIN" : beginRound,
+                    "YOUR" : regularPrint,
+                    "STARTING" : firstTile,
+                    "THE" : tileStack,
+                    "MATCH" : regularPrint,
+                    "MAKE" : getMoveFromGame,
+                    "GAME" : notifyGameOfMove,
+                    "END" : regularPrint,
+                    "PLEASE" : regularPrint,
+                    "THANK" : regularPrint,
+              }
 
 
 socketSetup(50000)
@@ -95,4 +127,4 @@ for line in readlines(s):
     l = line
     tokens = l.split(" ")
     #print "selecting function"
-    options[tokens[0]](tokens)
+    messageType[tokens[0]](tokens)
