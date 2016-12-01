@@ -1,34 +1,30 @@
 #include "Board.h"
 
-std::unordered_map<unsigned int, Move> Board::tileIDTracker = std::unordered_map<unsigned int, Move>();
-std::unordered_set<unsigned int> Board::availableLocations = std::unordered_set<unsigned int>();
-TileStack tileStack(unsigned int NUMBER_OF_PLAYERS);
-
-const unsigned int Board::boardWidth = NUMBER_OF_PLAYABLE_TILES * 2 + 1;
-const unsigned int Board::boardHeight = NUMBER_OF_PLAYABLE_TILES * 2 + 1;
-Array<Array<Tile*>> Board::board = Array<Array<Tile*>>(boardWidth);
-int throwaway = Board::set();
-
-int Board::set()
+Board::Board(TigerZoneGame* game)
 {
-    Board::availableLocations.clear();
-    Board::tileIDTracker.clear();
+    this->game = game;
+    
+    this->tileIDTracker = std::unordered_map<unsigned int, Move>();
+    this->availableLocations = std::unordered_set<unsigned int>();
+    this->tileStack = new TileStack((unsigned int) NUMBER_OF_PLAYERS);
 
-    for(unsigned int i = 0; i < Board::boardWidth; i++)
+    this->boardWidth = NUMBER_OF_PLAYABLE_TILES * 2 + 1;
+    this->boardHeight = NUMBER_OF_PLAYABLE_TILES * 2 + 1;
+    this->board = Array<Array<Tile*>>(boardWidth);
+
+    for(unsigned int i = 0; i < this->boardWidth; i++)
     {
-        Board::board[i] = Array<Tile*>(boardHeight);
-        for(unsigned int j = 0; j < Board::boardHeight; j++)
+        this->board[i] = Array<Tile*>(boardHeight);
+        for(unsigned int j = 0; j < this->boardHeight; j++)
         {
-            Board::board[i][j] = nullptr;
+            this->board[i][j] = nullptr;
         }
     }
-
-    return 1;
 }
 
 const Array<Array<Tile*>>& Board::getBoard()
 {
-    return Board::board;
+    return this->board;
 }
 
 Tile* Board::get(const Coord& coord)
@@ -41,7 +37,7 @@ Tile* Board::get(unsigned int tileID)
     auto tileSearch = tileIDTracker.find(tileID);
     if(tileSearch != tileIDTracker.end())
     {
-        return Board::get((tileSearch->second).getCoord());
+        return this->get((tileSearch->second).getCoord());
     }
     else
     {
@@ -58,7 +54,7 @@ const Tile** Board::getBorderingTiles(const Coord& coord)
     int dx[numberOfBorderingTiles] = { -1, 0, 1, 1, 1, 0, -1, -1 }; 
     int dy[numberOfBorderingTiles] = { 1, 1, 1, 0, -1, -1, -1, 0 };
 
-    const Array<Array<Tile*>>& boardGrid = Board::getBoard();
+    const Array<Array<Tile*>>& boardGrid = this->getBoard();
 
     for(unsigned int i = 0; i < numberOfBorderingTiles; i++)
     {
@@ -79,8 +75,8 @@ const Tile** Board::getBorderingTiles(const Coord& coord)
 
 const Tile** Board::getBorderingTiles(const Tile& tile)
 {
-    const Coord& coord = Board::getCoordinatesFromTileId(tile.getId());
-    return Board::getBorderingTiles(coord);
+    const Coord& coord = this->getCoordinatesFromTileId(tile.getId());
+    return this->getBorderingTiles(coord);
 }
 
 const Coord Board::getCoordinatesFromGridId(unsigned int gridId)
@@ -105,13 +101,13 @@ void Board::place(const Move& move)
 {
     const Coord& coord = move.getCoord();
     Tile& tile = move.getTile();
-    unsigned int gridId = Board::getGridId(coord);
+    unsigned int gridId = this->getGridId(coord);
 
     availableLocations.erase(gridId);
     int dx[4] = { -1, 1, 0, 0 };
     int dy[4] = { 0, 0, -1, 1 };
 
-    const Array<Array<Tile*>>& boardGrid = Board::getBoard();
+    const Array<Array<Tile*>>& boardGrid = this->getBoard();
 
     for(unsigned int i = 0; i < 4; i++)
     {
@@ -125,7 +121,7 @@ void Board::place(const Move& move)
 
         if(boardGrid[x][y] == NULL)
         {
-            availableLocations.insert(Board::getGridId(x, y));
+            availableLocations.insert(this->getGridId(x, y));
         }
     }
 

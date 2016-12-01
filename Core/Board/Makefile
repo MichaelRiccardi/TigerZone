@@ -1,7 +1,7 @@
 CC=g++
 CFLAGS=-Wall -std=c++14
 DCFLAGS=-g -D__testing
-DEPS=../Tiles/Tile.h ../Tiles/TerrainType.h ../Tiles/TileType.h ../Tiles/PreyType.h ../Tiles/TileStack.h ../../Common/Array.h ../BoardManager/Coord.h ../BoardManager/Move.h Board.h
+DEPS=../Tiles/Tile.h ../Tiles/TerrainType.h ../Tiles/TileType.h ../Tiles/PreyType.h ../Tiles/TileStack.h ../../Common/Array.h ../BoardManager/Coord.h ../BoardManager/Move.h ../../TigerZoneGame/TigerZoneGame.h Board.h
 CLEAN=*.o
 
 default: Board.o

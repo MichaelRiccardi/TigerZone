@@ -1,6 +1,7 @@
 #ifndef __REGIONS_H
 #define __REGIONS_H
 
+#include "../../TigerZoneGame/TigerZoneGame.h"
 #include "Rules.h"
 #include "../BoardManager/Move.h"
 #include "../Tiles/Tile.h"
@@ -17,46 +18,6 @@
 #define OWNER_TIE       0
 #define OWNER_P2        -1
 #define OWNER_NONE      -2
-
-class Regions
-{
-    public:
-        static std::shared_ptr<struct regionSet> * addConnection(const Tile& newTile, const Tile **  boarderingTiles, std::unordered_map<unsigned int, std::shared_ptr<struct regionSet> *> * tracker = NULL);
-        static int addMeeple(unsigned int playerNumber, unsigned int tileID, unsigned int edge, std::unordered_map<unsigned int, std::shared_ptr<struct regionSet> *> * tracker = NULL);
-        static int addMeepleSpecial(unsigned int playerNumber, unsigned int tileID);
-        static int specialRemoveMeeple(unsigned int playerNumber, unsigned int tileID);
-        static int checkOwner(unsigned int tileID, unsigned int edge, std::unordered_map<unsigned int, std::shared_ptr<struct regionSet> *> * tracker = NULL);
-        static std::shared_ptr<struct regionSet> * getRegions(unsigned int tileID);
-        static int removeMeeple(unsigned int tileID, unsigned int edge, std::unordered_map<unsigned int, std::shared_ptr<struct regionSet> *> * tracker = NULL);
-        static bool checkRegionExistence(unsigned int tileID, unsigned int edge);
-        static unsigned int checkRegionEdgesTillCompletion(unsigned int tileID, unsigned int edge);
-        static struct moveResult tryMove(const Tile& tile, const Tile ** boarderingTiles, int meepleEdge = -1, bool specialMeeple = false);
-
-        static unsigned int meeplesAvailable(unsigned int playerNumber);
-        static bool ownerMeepleInUse(unsigned int meepleIndex);
-        static unsigned int getMeepleTileId(unsigned int meepleIndex);
-
-        static int addCroc(unsigned int playerNumber, unsigned int tileID);
-        static unsigned int crocsAvailable(unsigned int playerNumber);
-
-#ifdef __testing
-        static void clearRegionTracker();
-        static void clearOwnerMeeples();
-#else
-    private:
-#endif
-        static std::shared_ptr<struct regionSet> createRegion(const Tile& tile, unsigned int edge, TerrainType type);
-        static int countEdgesTillCompletion(unsigned int placedTileID);
-        static void mergeRegions(unsigned int placedTileID, unsigned int placedEdge, unsigned int connectingTileID, unsigned int connectingEdge);
-
-        static std::unordered_map<unsigned int, std::shared_ptr<struct regionSet> *> regionTracker;    //Takes (tileID, edge) returns set pointer
-
-        static struct meeple ownerMeeples[TOTAL_MEEPLES];
-        static unsigned int availableMeeples[2];
-
-        static struct croc ownerCrocs[TOTAL_CROCS];
-        static unsigned int availableCrocs[2];
-};
 
 struct moveResult
 {
@@ -157,6 +118,49 @@ struct croc
 
     bool inUse;
     std::shared_ptr<struct regionSet> *ownedRegions;
+};
+
+class Regions
+{
+    public:
+         Regions(TigerZoneGame* game);
+         std::shared_ptr<struct regionSet> * addConnection(const Tile& newTile, const Tile **  boarderingTiles, std::unordered_map<unsigned int, std::shared_ptr<struct regionSet> *> * tracker = NULL);
+         int addMeeple(unsigned int playerNumber, unsigned int tileID, unsigned int edge, std::unordered_map<unsigned int, std::shared_ptr<struct regionSet> *> * tracker = NULL);
+         int addMeepleSpecial(unsigned int playerNumber, unsigned int tileID);
+         int specialRemoveMeeple(unsigned int playerNumber, unsigned int tileID);
+         int checkOwner(unsigned int tileID, unsigned int edge, std::unordered_map<unsigned int, std::shared_ptr<struct regionSet> *> * tracker = NULL);
+         std::shared_ptr<struct regionSet> * getRegions(unsigned int tileID);
+         int removeMeeple(unsigned int tileID, unsigned int edge, std::unordered_map<unsigned int, std::shared_ptr<struct regionSet> *> * tracker = NULL);
+         bool checkRegionExistence(unsigned int tileID, unsigned int edge);
+         unsigned int checkRegionEdgesTillCompletion(unsigned int tileID, unsigned int edge);
+         struct moveResult tryMove(const Tile& tile, const Tile ** boarderingTiles, int meepleEdge = -1, bool specialMeeple = false);
+
+         unsigned int meeplesAvailable(unsigned int playerNumber);
+         bool ownerMeepleInUse(unsigned int meepleIndex);
+         unsigned int getMeepleTileId(unsigned int meepleIndex);
+
+         int addCroc(unsigned int playerNumber, unsigned int tileID);
+         unsigned int crocsAvailable(unsigned int playerNumber);
+
+#ifdef __testing
+         void clearRegionTracker();
+         void clearOwnerMeeples();
+#else
+    private:
+#endif
+         TigerZoneGame* game;
+
+         std::shared_ptr<struct regionSet> createRegion(const Tile& tile, unsigned int edge, TerrainType type);
+         int countEdgesTillCompletion(unsigned int placedTileID);
+         void mergeRegions(unsigned int placedTileID, unsigned int placedEdge, unsigned int connectingTileID, unsigned int connectingEdge);
+
+         std::unordered_map<unsigned int, std::shared_ptr<struct regionSet> *> regionTracker;    //Takes (tileID, edge) returns set pointer
+
+         struct meeple ownerMeeples[TOTAL_MEEPLES];
+         unsigned int availableMeeples[2];
+
+         struct croc ownerCrocs[TOTAL_CROCS];
+         unsigned int availableCrocs[2];
 };
 
 #endif

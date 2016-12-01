@@ -6,7 +6,7 @@ CLEAN=*.o ExternalClient
 
 default: ExternalClient
 
-#tests: ExternalClient-Test.o
+tests: #ExternalClient-Test.o
 
 ExternalClient: ExternalClient.cpp $(DEPS)
 	$(CC) $(CFLAGS) $< -o $@

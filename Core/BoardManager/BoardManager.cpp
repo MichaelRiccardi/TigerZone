@@ -1,52 +1,47 @@
 #include "BoardManager.h"
 
-TileStack* BoardManager::tileStack = new TileStack(NUMBER_OF_PLAYERS);
-unsigned int BoardManager::tileIDCounter = 0;
-Tile * BoardManager::startingTile = NULL;
-std::unordered_map<std::string, int> BoardManager::getTileFunctionFromName = std::unordered_map<std::string, int>();
-int v = BoardManager::setupHashMap();
-
-
-int BoardManager::setupHashMap()
+BoardManager::BoardManager(TigerZoneGame* game)
 {
-    Board::set();                                           // Set/reset the Board
-    tileStack = new TileStack(NUMBER_OF_PLAYERS);           // Initialize Tile stack
-
-    BoardManager::getTileFunctionFromName["JJJJ-"] = 25;    //Tile::CreateTileY;
-    BoardManager::getTileFunctionFromName["JJJJX"] = 4;     //Tile::CreateTileB;
-    BoardManager::getTileFunctionFromName["JJTJX"] = 1;     //Tile::CreateTileA;
-    BoardManager::getTileFunctionFromName["TTTT-"] = 0;     //Tile::CreateTileX;
-    BoardManager::getTileFunctionFromName["TJTJ-"] = 21;    //Tile::CreateTileU;
-    BoardManager::getTileFunctionFromName["TJJT-"] = 22;    //Tile::CreateTileV;
-    BoardManager::getTileFunctionFromName["TJTT-"] = 23;    //Tile::CreateTileW;
-    BoardManager::getTileFunctionFromName["LLLL-"] = 2;     //Tile::CreateTileC;
-    BoardManager::getTileFunctionFromName["JLLL-"] = 18;    //Tile::CreateTileR;
-    BoardManager::getTileFunctionFromName["LLJJ-"] = 15;    //Tile::CreateTileN;
-    BoardManager::getTileFunctionFromName["JLJL-"] = 6;     //Tile::CreateTileG;
-    BoardManager::getTileFunctionFromName["LJLJ-"] = 7;     //Tile::CreateTileH;
-    BoardManager::getTileFunctionFromName["LJJJ-"] = 5;     //Tile::CreateTileE;
-    BoardManager::getTileFunctionFromName["JLLJ-"] = 8;     //Tile::CreateTileI;
-    BoardManager::getTileFunctionFromName["TLJT-"] = 11;    //Tile::CreateTileK;
-    BoardManager::getTileFunctionFromName["TLJTP"] = 12;    //Tile::CreateTileK;
-    BoardManager::getTileFunctionFromName["JLTT-"] = 9;     //Tile::CreateTileJ;
-    BoardManager::getTileFunctionFromName["JLTTB"] = 10;    //Tile::CreateTileJ;
-    BoardManager::getTileFunctionFromName["TLTJ-"] = 3;     //Tile::CreateTileD;
-    BoardManager::getTileFunctionFromName["TLTJD"] = 4;     //Tile::CreateTileD;
-    BoardManager::getTileFunctionFromName["TLLL-"] = 19;    //Tile::CreateTileT;
-    BoardManager::getTileFunctionFromName["TLTT-"] = 13;    //Tile::CreateTileL;
-    BoardManager::getTileFunctionFromName["TLTTP"] = 14;    //Tile::CreateTileL;
-    BoardManager::getTileFunctionFromName["TLLT-"] = 16;    //Tile::CreateTileP;
-    BoardManager::getTileFunctionFromName["TLLTB"] = 17;    //Tile::CreateTileP;
-    BoardManager::getTileFunctionFromName["LJTJ-"] = 26;    //Tile::CreateTileZ;
-    BoardManager::getTileFunctionFromName["LJTJD"] = 27;    //Tile::CreateTileZ;
-    BoardManager::getTileFunctionFromName["TLLLC"] = 20;    //Tile::CreateTileZ;
-    return 0;
+    this->game = game;
+    this->tileStack = new TileStack(NUMBER_OF_PLAYERS);
+    this->tileIDCounter = 0;
+    this->startingTile = NULL;
+    this->getTileFunctionFromName = std::unordered_map<std::string, int>();
+    this->setupHashMap();
 }
 
+void BoardManager::setupHashMap()
+{   
 
-
-
-
+    this->getTileFunctionFromName["JJJJ-"] = 25;    //Tile::CreateTileY;
+    this->getTileFunctionFromName["JJJJX"] = 4;     //Tile::CreateTileB;
+    this->getTileFunctionFromName["JJTJX"] = 1;     //Tile::CreateTileA;
+    this->getTileFunctionFromName["TTTT-"] = 0;     //Tile::CreateTileX;
+    this->getTileFunctionFromName["TJTJ-"] = 21;    //Tile::CreateTileU;
+    this->getTileFunctionFromName["TJJT-"] = 22;    //Tile::CreateTileV;
+    this->getTileFunctionFromName["TJTT-"] = 23;    //Tile::CreateTileW;
+    this->getTileFunctionFromName["LLLL-"] = 2;     //Tile::CreateTileC;
+    this->getTileFunctionFromName["JLLL-"] = 18;    //Tile::CreateTileR;
+    this->getTileFunctionFromName["LLJJ-"] = 15;    //Tile::CreateTileN;
+    this->getTileFunctionFromName["JLJL-"] = 6;     //Tile::CreateTileG;
+    this->getTileFunctionFromName["LJLJ-"] = 7;     //Tile::CreateTileH;
+    this->getTileFunctionFromName["LJJJ-"] = 5;     //Tile::CreateTileE;
+    this->getTileFunctionFromName["JLLJ-"] = 8;     //Tile::CreateTileI;
+    this->getTileFunctionFromName["TLJT-"] = 11;    //Tile::CreateTileK;
+    this->getTileFunctionFromName["TLJTP"] = 12;    //Tile::CreateTileK;
+    this->getTileFunctionFromName["JLTT-"] = 9;     //Tile::CreateTileJ;
+    this->getTileFunctionFromName["JLTTB"] = 10;    //Tile::CreateTileJ;
+    this->getTileFunctionFromName["TLTJ-"] = 3;     //Tile::CreateTileD;
+    this->getTileFunctionFromName["TLTJD"] = 4;     //Tile::CreateTileD;
+    this->getTileFunctionFromName["TLLL-"] = 19;    //Tile::CreateTileT;
+    this->getTileFunctionFromName["TLTT-"] = 13;    //Tile::CreateTileL;
+    this->getTileFunctionFromName["TLTTP"] = 14;    //Tile::CreateTileL;
+    this->getTileFunctionFromName["TLLT-"] = 16;    //Tile::CreateTileP;
+    this->getTileFunctionFromName["TLLTB"] = 17;    //Tile::CreateTileP;
+    this->getTileFunctionFromName["LJTJ-"] = 26;    //Tile::CreateTileZ;
+    this->getTileFunctionFromName["LJTJD"] = 27;    //Tile::CreateTileZ;
+    this->getTileFunctionFromName["TLLLC"] = 20;    //Tile::CreateTileZ;
+}
 
 BoardManager::~BoardManager()
 {
@@ -56,12 +51,12 @@ BoardManager::~BoardManager()
 
 const Array<Array<Tile*>>& BoardManager::getBoard()
 {
-    return Board::getBoard();
+    return game->board->getBoard();
 }
 
 void BoardManager::gameInit()
 {
-    Board::set(); // Set/reset the Board
+     // Set/reset the Board
     tileStack = new TileStack(NUMBER_OF_PLAYERS); // Initialize Tile stack
 
     // Build the Tile list
@@ -80,9 +75,9 @@ void BoardManager::gameInit()
                 if (startingTile != NULL) delete startingTile;
                 startingTile = new Tile(tiles[i][j]);
                 Move startingMove(*startingTile, center);
-                Board::place(startingMove);
-                const Tile ** borderingTiles = Board::getBorderingTiles(*startingTile);
-                Regions::addConnection(*startingTile, borderingTiles);
+                game->board->place(startingMove);
+                const Tile ** borderingTiles = game->board->getBorderingTiles(*startingTile);
+                game->regions->addConnection(*startingTile, borderingTiles);
                 startingTile->placeTile();
             }
             else
@@ -115,34 +110,34 @@ Tile& BoardManager::getTopTileStack()
 std::vector<Move> BoardManager::getValidMoves(const Tile& tile, unsigned int playerNumber)
 {
     std::vector<Move> validMoves;
-    std::unordered_set<unsigned int> availableLocations = Board::getAvailableLocations();
+    std::unordered_set<unsigned int> availableLocations = game->board->getAvailableLocations();
     const unsigned int daveTigerOrder[9] = { 0, 1, 2, 10, 12, 4, 8, 7, 5 };
 
     for(const int gridId : availableLocations)
     {
-        const Coord location = Board::getCoordinatesFromGridId(gridId);
-        const Tile ** borderingTiles = Board::getBorderingTiles(location);
+        const Coord location = game->board->getCoordinatesFromGridId(gridId);
+        const Tile ** borderingTiles = game->board->getBorderingTiles(location);
         Tile tileCopy = tile;
 
         for(unsigned int rotation = 0; rotation < (unsigned int) NUM_TILE_SIDES; rotation++)
         {
             tileCopy.setRotation(rotation);
 
-            if(GameRules::validTilePlacement(tileCopy, borderingTiles))
+            if(game->rules->validTilePlacement(tileCopy, borderingTiles))
             {
                 validMoves.push_back(Move(tileCopy, Coord(location), rotation)); // no meeple or croc
 
-                Array<bool> validMeeplePlacements = GameRules::validMeeplePlacement(tileCopy, location);
+                Array<bool> validMeeplePlacements = game->rules->validMeeplePlacement(tileCopy, location);
 
                 for(unsigned int daveTigerIndex = 0; daveTigerIndex < 9; daveTigerIndex++)
                 {
-                    if(validMeeplePlacements[daveTigerIndex])//GameRules::validMeeplePlacement(location, edgeIndex))
+                    if(validMeeplePlacements[daveTigerIndex])//game->rules->validMeeplePlacement(location, edgeIndex))
                     {
                         validMoves.push_back(Move(tileCopy, Coord(location), rotation, (unsigned int) daveTigerOrder[daveTigerIndex]));
                     }
                 }
 
-                if(GameRules::validCrocPlacement(tile, location))
+                if(game->rules->validCrocPlacement(tile, location))
                 {
                     validMoves.push_back(Move(tileCopy, Coord(location), rotation, true));
                 }
@@ -155,10 +150,10 @@ std::vector<Move> BoardManager::getValidMoves(const Tile& tile, unsigned int pla
         validMoves.push_back(Move(false)); // pass
         for(unsigned int i = 7 * (playerNumber - 1); i < (7 * playerNumber); i++)
         {
-            if(Regions::ownerMeepleInUse(i))
+            if(game->regions->ownerMeepleInUse(i))
             {
-                unsigned int meepleTileId = Regions::getMeepleTileId(i);
-                Tile& meepleTile = *Board::get(meepleTileId);
+                unsigned int meepleTileId = game->regions->getMeepleTileId(i);
+                Tile& meepleTile = *game->board->get(meepleTileId);
                 validMoves.push_back(Move(meepleTile, true)); // place another
                 validMoves.push_back(Move(meepleTile, false)); // remove
             }
@@ -170,21 +165,21 @@ std::vector<Move> BoardManager::getValidMoves(const Tile& tile, unsigned int pla
 void BoardManager::makeMove(const Move& move, unsigned int playerNumber)
 {
     // if calling this method, it is assumed that this is a legal move
-    Board::place(move);
+    game->board->place(move);
 
     Tile& tile = move.getTile();
     tile.setRotation(move.getRotation());
 
-    const Tile ** borderingTiles = Board::getBorderingTiles(tile);
-    Regions::addConnection(tile, borderingTiles);    
+    const Tile ** borderingTiles = game->board->getBorderingTiles(tile);
+    game->regions->addConnection(tile, borderingTiles);    
 
     if(move.getMeepleLocation() != -1) // if Move includes Meeple
     {
-        Regions::addMeeple(playerNumber, tile.getId(), move.getMeepleLocation());
+        game->regions->addMeeple(playerNumber, tile.getId(), move.getMeepleLocation());
     }
     else if(move.getHasCrocodile())
     {
-        Regions::addCroc(playerNumber, tile.getId());
+        game->regions->addCroc(playerNumber, tile.getId());
     }
 
     tile.placeTile(); // mark Tile as placed so it can no longer be rotated
@@ -197,11 +192,11 @@ void BoardManager::cannotPlaceTile(const Move& move, unsigned int playerNumber)
     //Code special cases.
     if(!move.getPickupMeeple()) // if Move includes Meeple
     {
-        Regions::addMeepleSpecial(playerNumber, move.getTile().getId());
+        game->regions->addMeepleSpecial(playerNumber, move.getTile().getId());
     }
     else 
     {
-        Regions::specialRemoveMeeple(playerNumber, move.getTile().getId());
+        game->regions->specialRemoveMeeple(playerNumber, move.getTile().getId());
     }
 }
 
@@ -209,8 +204,8 @@ unsigned int BoardManager::isSurrounded(int tileID)
 {
     unsigned int surrounded = 0;
     //printf("[surrounded] tileID %d\n", tileID);
-    const Coord& coord = Board::getCoordinatesFromTileId(tileID);
-    const Array<Array<Tile*>>& boardGrid = Board::getBoard();
+    const Coord& coord = game->board->getCoordinatesFromTileId(tileID);
+    const Array<Array<Tile*>>& boardGrid = game->board->getBoard();
     unsigned int xLocation = coord.getX();
     unsigned int yLocation = coord.getY();
 
@@ -233,7 +228,7 @@ unsigned int BoardManager::isSurrounded(int tileID)
 //Entry points for AI
 struct moveResult BoardManager::tryMove(const Tile& tile, int meepleEdge, bool specialMeeple)
 {
-    return Regions::tryMove(tile, Board::getBorderingTiles(tile), meepleEdge, specialMeeple);
+    return game->regions->tryMove(tile, game->board->getBorderingTiles(tile), meepleEdge, specialMeeple);
 }
 
 
@@ -246,7 +241,6 @@ void BoardManager::inputTileStack(char stack[], int length)
     }
     */
     //printf("Why\n");
-    Board::set();
     //printf("Why not\n");
     Array<Array<Tile>> tiles = Tile::CreateTiles();
     //printf("Hoopla\n");

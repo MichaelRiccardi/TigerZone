@@ -2,6 +2,7 @@
 
 #ifndef __TURN_COORDINATOR_H
 #define __TURN_COORDINATOR_H
+#include "../../TigerZoneGame/TigerZoneGame.h"
 #include "../../ProgramCoordinator/ProgramCoordinator.h"
 #include "../AI/AI.h"
 
@@ -24,13 +25,14 @@
 class TurnCoordinator
 {
 public:
-    TurnCoordinator(int port);
+    TurnCoordinator(int port, TigerZoneGame* game);
     ~TurnCoordinator();
     void startCoordinator();  //Infinite loop for receiving messages from external client
 #ifdef __testing
 #else
 private:
 #endif
+    TigerZoneGame* game;
     void receiveMessage();
     void handleMessage(gameMessage *msg);
     void callAI();

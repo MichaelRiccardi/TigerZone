@@ -1,7 +1,11 @@
 #include "Rules.h"
 
-unsigned int GameRules::player1Score = 0;
-unsigned int GameRules::player2Score = 0;
+GameRules::GameRules(TigerZoneGame* game)
+{
+    this->game = game;
+    this->player1Score = 0;
+    this->player2Score = 0;
+}
 
 bool GameRules::validTilePlacement(const Tile& placed, const Tile ** boarderingTiles)
 {
@@ -26,7 +30,7 @@ bool GameRules::validTilePlacement(const Tile& placed, const Tile ** boarderingT
 bool GameRules::validMeeplePlacement(const Tile& placed, unsigned int edgeIndex)
 {
     unsigned int id = placed.getId();
-    std::shared_ptr<struct regionSet> * regions = Regions::getRegions(id);
+    std::shared_ptr<struct regionSet> * regions = game->regions->getRegions(id);
     if (regions == NULL) return true;
 
     bool hasPlayer1 = regions[edgeIndex]->player1Meeples > 0;
@@ -67,7 +71,7 @@ Array<bool> GameRules::validMeeplePlacement(const Tile& toBePlaced, const Coord&
 
         Coord neighbor = Coord(newX, newY);
 
-        const Tile* neighborTile = Board::get(neighbor);
+        const Tile* neighborTile = game->board->get(neighbor);
 
         if (neighborTile == NULL)
         {
@@ -75,7 +79,7 @@ Array<bool> GameRules::validMeeplePlacement(const Tile& toBePlaced, const Coord&
             continue;
         }
 
-        std::shared_ptr<struct regionSet> * regions = Regions::getRegions(neighborTile->getId());
+        std::shared_ptr<struct regionSet> * regions = game->regions->getRegions(neighborTile->getId());
         if (regions == NULL)
         {
             canPlaceMeeple[t] = true;
@@ -97,9 +101,9 @@ Array<bool> GameRules::validMeeplePlacement(const Tile& toBePlaced, const Coord&
         }
 
         //std::cout << location << " with " << edgeIndex << " neighbor (" << newX << ", " << newY << ")" << std::endl;
-        //std::cout << Regions::checkOwner(neighborTile->getId(), correspondingEdge) << std::endl;
+        //std::cout << game->regions->checkOwner(neighborTile->getId(), correspondingEdge) << std::endl;
 
-        canPlaceMeeple[t] = (Regions::checkOwner(neighborTile->getId(), correspondingEdge) == -2);
+        canPlaceMeeple[t] = (game->regions->checkOwner(neighborTile->getId(), correspondingEdge) == -2);
 
         if(!canPlaceMeeple[t])
         {
@@ -122,7 +126,7 @@ Array<bool> GameRules::validMeeplePlacement(const Tile& toBePlaced, const Coord&
 
 bool GameRules::hasCroc(unsigned int tileID)
 {
-    std::shared_ptr<struct regionSet> * regions = Regions::getRegions(tileID);
+    std::shared_ptr<struct regionSet> * regions = game->regions->getRegions(tileID);
 
     if(regions == nullptr)
     {
@@ -141,7 +145,7 @@ bool GameRules::hasCroc(unsigned int tileID)
 
 bool GameRules::validCrocPlacement(unsigned int tileID)
 {
-    const Tile *currentTile = Board::get(tileID);
+    const Tile *currentTile = game->board->get(tileID);
     bool valid = false;
     for(int i = 0; i < NUM_TILE_EDGES + 1; i++)
     {
@@ -164,7 +168,7 @@ bool GameRules::validCrocPlacement(unsigned int tileID)
 bool GameRules::checkSideForCroc(unsigned int x, unsigned int y)
 {
     Coord sideCoord = Coord(x,y);
-    Tile* sideTile = Board::get(sideCoord);
+    Tile* sideTile = game->board->get(sideCoord);
     if(sideTile == nullptr) return false;
     unsigned int tileID = sideTile->getId();
     return hasCroc(tileID);  //If the adjacent tile regions return valid move, no croc.
@@ -332,9 +336,9 @@ unsigned int GameRules::scoreGrass(std::shared_ptr<struct regionSet> * passedSet
         }
         else {
             //Get all of the regions for the current tileID (associated with the current node)
-            currentSets = Regions::getRegions(currentNode->tileID);
+            currentSets = game->regions->getRegions(currentNode->tileID);
             //We need the actual tile to be able to determine which regions are actually touching.
-            currentTile = Board::get(tileID);
+            currentTile = game->board->get(tileID);
         }
 
         //Init the starting values of left and right.
@@ -460,9 +464,9 @@ unsigned int GameRules::getCurrentScore(std::shared_ptr<struct regionSet> * curr
 //Entry point for scoring a region.
 unsigned int GameRules::getCurrentScore(unsigned int tileID, unsigned int edge)
 {
-    unsigned int tilesSurrounded = BoardManager::isSurrounded(tileID);
+    unsigned int tilesSurrounded = game->boardManager->isSurrounded(tileID);
 
-    std::shared_ptr<struct regionSet> * currentRegion = Regions::getRegions(tileID);
+    std::shared_ptr<struct regionSet> * currentRegion = game->regions->getRegions(tileID);
     unsigned int returnValue = 0;
 
     switch (currentRegion[edge]->type)
@@ -489,9 +493,9 @@ unsigned int GameRules::getCurrentScore(unsigned int tileID, unsigned int edge)
 
 unsigned int GameRules::scoreEdge(unsigned int tileID, unsigned int edge, bool endOfGame)
 {
-    unsigned int tilesSurrounded = BoardManager::isSurrounded(tileID);
+    unsigned int tilesSurrounded = game->boardManager->isSurrounded(tileID);
 
-    std::shared_ptr<struct regionSet> * currentRegion = Regions::getRegions(tileID);
+    std::shared_ptr<struct regionSet> * currentRegion = game->regions->getRegions(tileID);
     unsigned int returnValue = 0;
 
     switch (currentRegion[edge]->type)
@@ -514,7 +518,7 @@ unsigned int GameRules::scoreEdge(unsigned int tileID, unsigned int edge, bool e
     }
 
     //Update the current score for the owning player(s)
-    int ret = Regions::checkOwner(tileID, edge);
+    int ret = game->regions->checkOwner(tileID, edge);
     if(ret == OWNER_P1)
     {
         GameRules::player1Score += returnValue;
@@ -533,7 +537,7 @@ unsigned int GameRules::scoreEdge(unsigned int tileID, unsigned int edge, bool e
 
     if (returnValue != 0)
     {
-        Regions::removeMeeple(tileID, edge);
+        game->regions->removeMeeple(tileID, edge);
     }
 
     return returnValue;

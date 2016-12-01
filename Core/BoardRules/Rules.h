@@ -20,26 +20,28 @@
 class GameRules
 {
     public:
-        static bool validTilePlacement(const Tile& placed, const Tile ** boarderingTiles);
-        static bool validMeeplePlacement(const Tile& placed, unsigned int edgeIndex);
-        static Array<bool> validMeeplePlacement(const Tile& toBePlaced, const Coord& location);
-        static bool validCrocPlacement(unsigned int tileID);
-        static bool hasCroc(unsigned int tileID);
-        static bool checkSideForCroc(unsigned int x, unsigned int y);
-        static bool validCrocPlacement(const Tile& toPlace, const Coord& location);
-        static unsigned int getCurrentScore(unsigned int tileID, unsigned int edge);
-        static unsigned int getCurrentScore(std::shared_ptr<struct regionSet> * currentRegions, unsigned int edge, const Tile * tile, unsigned int tilesSurrounded);
-        static unsigned int scoreEdge(unsigned int tileID, unsigned int edge, bool endOfGame = false);
-        static unsigned int getPlayerScore(unsigned int player);
+         GameRules(TigerZoneGame* game);
+         bool validTilePlacement(const Tile& placed, const Tile ** boarderingTiles);
+         bool validMeeplePlacement(const Tile& placed, unsigned int edgeIndex);
+         Array<bool> validMeeplePlacement(const Tile& toBePlaced, const Coord& location);
+         bool validCrocPlacement(unsigned int tileID);
+         bool hasCroc(unsigned int tileID);
+         bool checkSideForCroc(unsigned int x, unsigned int y);
+         bool validCrocPlacement(const Tile& toPlace, const Coord& location);
+         unsigned int getCurrentScore(unsigned int tileID, unsigned int edge);
+         unsigned int getCurrentScore(std::shared_ptr<struct regionSet> * currentRegions, unsigned int edge, const Tile * tile, unsigned int tilesSurrounded);
+         unsigned int scoreEdge(unsigned int tileID, unsigned int edge, bool endOfGame = false);
+         unsigned int getPlayerScore(unsigned int player);
 #ifndef __testing
     private:
 #endif
-        static unsigned int scoreRoad(std::shared_ptr<struct regionSet> currentSet, bool actuallyScore);
-        static unsigned int scoreCastle(std::shared_ptr<struct regionSet> currentSet, bool actuallyScore, bool endOfGame = false);
-        static unsigned int scoreGrass(std::shared_ptr<struct regionSet> * currentSets, unsigned int tileID, unsigned int edge, const Tile * passedTile = NULL);
-        static unsigned int scoreChurch(unsigned int isSurrounded, bool actuallyScore);
-        static unsigned int player1Score;
-        static unsigned int player2Score;
+         TigerZoneGame* game;
+         unsigned int scoreRoad(std::shared_ptr<struct regionSet> currentSet, bool actuallyScore);
+         unsigned int scoreCastle(std::shared_ptr<struct regionSet> currentSet, bool actuallyScore, bool endOfGame = false);
+         unsigned int scoreGrass(std::shared_ptr<struct regionSet> * currentSets, unsigned int tileID, unsigned int edge, const Tile * passedTile = NULL);
+         unsigned int scoreChurch(unsigned int isSurrounded, bool actuallyScore);
+         unsigned int player1Score;
+         unsigned int player2Score;
 };
 
 

@@ -10,14 +10,17 @@
 class AI
 {
 public:
-    static Move chooseTurn(const Tile& currentTile);
-    static void setPlayerNumber(unsigned int playerNumber);
+	AI(TigerZoneGame* game);
+    Move chooseTurn(const Tile& currentTile);
+    void setPlayerNumber(unsigned int playerNumber);
+    std::vector<Move> getMoveList();
 #ifndef __testing
 private:
 #endif
-    static FuzzyLogic fz;
-    static AIMove move;
-    static unsigned int myPlayerNumber;
+	TigerZoneGame* game;
+    FuzzyLogic fz;
+    AIMove move;
+    unsigned int myPlayerNumber;
 };
 
 #endif

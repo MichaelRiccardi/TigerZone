@@ -1,12 +1,17 @@
 #include "Regions.h"
 
-std::unordered_map<unsigned int, std::shared_ptr<struct regionSet> *> Regions::regionTracker = std::unordered_map<unsigned int, std::shared_ptr<struct regionSet> *>();
+Regions::Regions(TigerZoneGame* game)
+{
+    this->game = game;
+    //this->ownerMeeples = {};
+    //this->ownerCrocs = {};
+    this->regionTracker = std::unordered_map<unsigned int, std::shared_ptr<struct regionSet> *>();
+    this->availableMeeples[0] = MEEPLES_PER_PLAYER;
+    this->availableMeeples[1] = MEEPLES_PER_PLAYER;
+    this->availableCrocs[0] = CROCS_PER_PLAYER;
+    this->availableCrocs[1] = CROCS_PER_PLAYER;
 
-struct meeple Regions::ownerMeeples[] = {};
-unsigned int Regions::availableMeeples[2] = { MEEPLES_PER_PLAYER, MEEPLES_PER_PLAYER };
-
-struct croc Regions::ownerCrocs[] = {};
-unsigned int Regions::availableCrocs[2] = { CROCS_PER_PLAYER, CROCS_PER_PLAYER };
+}
 
 /***************** Temporary! *****************/
 #include <iostream>
@@ -46,7 +51,7 @@ int Regions::addCroc(unsigned int playerNumber, unsigned int tileID)
         return -1;
     }
 
-    if(GameRules::validCrocPlacement(tileID))
+    if(game->rules->validCrocPlacement(tileID))
     {
         ownerCrocs[i].inUse = true;
         ownerCrocs[i].ownedRegions = (regionTracker.find(tileID))->second;
@@ -55,7 +60,7 @@ int Regions::addCroc(unsigned int playerNumber, unsigned int tileID)
         {
             ownerCrocs[i].ownedRegions[j]->hasCroc = true;
         }
-        Regions::availableCrocs[playerNumber - 1]--;
+        this->availableCrocs[playerNumber - 1]--;
 
         return 0;
     }
@@ -123,7 +128,7 @@ std::shared_ptr<struct regionSet> * Regions::addConnection(const Tile& newTile, 
     (*tracker)[id] = newRegions;
 
     if (newTile.getCenter() == TerrainType::Church) {
-        newRegions[totalEdges] = Regions::createRegion(newTile, totalEdges, newTile.getCenter());
+        newRegions[totalEdges] = this->createRegion(newTile, totalEdges, newTile.getCenter());
         newRegions[totalEdges]->edgesTillCompletion = 8;
     }
     else {
@@ -242,7 +247,7 @@ int Regions::addMeeple(unsigned int playerNumber, unsigned int tileID, unsigned 
         return -1;
     }
 
-    if(Regions::checkOwner(tileID, edge) == -2) //No owner
+    if(this->checkOwner(tileID, edge) == -2) //No owner
     {
         ownerMeeples[i].tileID = tileID;
         ownerMeeples[i].inUse = true;
@@ -260,10 +265,10 @@ int Regions::addMeeple(unsigned int playerNumber, unsigned int tileID, unsigned 
             throw std::invalid_argument(playerNumber + " is not a valid playerNumber");
         }
 
-        Regions::availableMeeples[playerNumber - 1]--;
+        this->availableMeeples[playerNumber - 1]--;
         return 0;
     }
-    //std::cout << "Regions::checkOwner(" << tileID << ", " << edge << ") = " << Regions::checkOwner(tileID, edge) << std::endl;
+    //std::cout << "this->checkOwner(" << tileID << ", " << edge << ") = " << this->checkOwner(tileID, edge) << std::endl;
     return -1;
 }
 
@@ -293,7 +298,7 @@ int Regions::addMeepleSpecial(unsigned int playerNumber, unsigned int tileID)
             ownerMeeples[freeMeeple].tileID = tileID;
             ownerMeeples[freeMeeple].inUse = true;
             ownerMeeples[freeMeeple].ownedRegion = ownerMeeples[i].ownedRegion;
-            Regions::availableMeeples[playerNumber - 1]--;
+            this->availableMeeples[playerNumber - 1]--;
             return 0; // success
         }
     }
@@ -316,11 +321,11 @@ int Regions::removeMeeple(unsigned int tileID, unsigned int edge, std::unordered
 
             if(i < MEEPLES_PER_PLAYER) //First player owner
             {
-                Regions::availableMeeples[0]++; //Free up the meeple
+                this->availableMeeples[0]++; //Free up the meeple
             }
             else //Player 2
             {
-                Regions::availableMeeples[1]++; //Free up the meeple
+                this->availableMeeples[1]++; //Free up the meeple
             }
         }
     }
@@ -335,7 +340,7 @@ int Regions::specialRemoveMeeple(unsigned int playerNumber, unsigned int tileID)
         {
             ownerMeeples[i].inUse = false;
             ownerMeeples[i].ownedRegion = NULL;
-            Regions::availableMeeples[playerNumber - 1]++;
+            this->availableMeeples[playerNumber - 1]++;
             return 0; // success
         }
     }
@@ -455,10 +460,10 @@ struct moveResult Regions::tryMove(const Tile& tile, const Tile ** boarderingTil
         unsigned int origScore = 0;
 
         // if there is a boardering tile for the current side, then we get the original score by scoring that tile's region using the actual game's regionTracker
-        if (boarderingTiles[side] != NULL) origScore = GameRules::getCurrentScore(boarderingTiles[side]->getId(), correspondingEdge);
+        if (boarderingTiles[side] != NULL) origScore = game->rules->getCurrentScore(boarderingTiles[side]->getId(), correspondingEdge);
 
         // score the same region but now using our new test move's region and get the difference
-        unsigned int score = GameRules::getCurrentScore(testRegions, edge, &tile, surrounding);
+        unsigned int score = game->rules->getCurrentScore(testRegions, edge, &tile, surrounding);
         int scoreDiff = score - origScore;
 
         // check who the owner of the region is and attribute them the points
@@ -485,7 +490,7 @@ unsigned int Regions::meeplesAvailable(unsigned int playerNumber)
 {
     if(playerNumber < 3)
     {
-        return Regions::availableMeeples[playerNumber - 1];
+        return this->availableMeeples[playerNumber - 1];
     }
     return 0;
 }
@@ -494,7 +499,7 @@ unsigned int Regions::crocsAvailable(unsigned int playerNumber)
 {
     if(playerNumber < 3)
     {
-        return Regions::availableCrocs[playerNumber - 1];
+        return this->availableCrocs[playerNumber - 1];
     }
     return 0;
 }

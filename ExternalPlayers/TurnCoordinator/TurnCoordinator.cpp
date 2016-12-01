@@ -2,8 +2,9 @@
 //Main functionality is to receive messages from the external game client and tell the AI when to take a turn.
 //It will also call the BoardManager to update opponent moves.
 
-TurnCoordinator::TurnCoordinator(int port)
+TurnCoordinator::TurnCoordinator(int port, TigerZoneGame* game)
 {
+    this->game = game;
     this->AISetup = false;
     this->ourPlayerNumber = 0;
     this->otherPlayerNumber = 0;
@@ -56,7 +57,7 @@ void TurnCoordinator::setUpAI()
     {
         throw std::logic_error("Trying to setup the AI before you know which player it is.");
     }
-    AI::setPlayerNumber(this->ourPlayerNumber);
+    game->ai->setPlayerNumber(this->ourPlayerNumber);
     this->AISetup = true;
 }
 
@@ -144,8 +145,8 @@ void TurnCoordinator::callAI()
         }
         setUpAI();
     }
-    Move chosenMove = AI::chooseTurn(BoardManager::getTopTileStack());
-    BoardManager::makeMove(chosenMove, this->ourPlayerNumber);
+    Move chosenMove = game->ai->chooseTurn(game->boardManager->getTopTileStack());
+    game->boardManager->makeMove(chosenMove, this->ourPlayerNumber);
 
     gameMessage *msg = new gameMessage;
     buildResponse(chosenMove, msg);
@@ -164,7 +165,7 @@ Move& TurnCoordinator::convertInMove(gameMessage *msg)
     //printf("Who's\n");
     if(!(msg->data.move.placeable) && !(msg->data.move.pass))
     {
-        mv = new Move((Tile&)BoardManager::getTopTileStack(), msg->data.move.pickupMeeple);
+        mv = new Move((Tile&)game->boardManager->getTopTileStack(), msg->data.move.pickupMeeple);
         return (*mv);
     }
     unsigned int zone;
@@ -203,8 +204,8 @@ Move& TurnCoordinator::convertInMove(gameMessage *msg)
             break;
     }
     //printf("Girl\n");
-    //std::cout << "TopTile : " << BoardManager::getTopTileStack().getTileName() << "MsgTile : " << msg->data.move.tile << std::endl;
-    if(!BoardManager::getTopTileStack().getTileName().compare(msg->data.move.tile))
+    //std::cout << "TopTile : " << game->boardManager->getTopTileStack().getTileName() << "MsgTile : " << msg->data.move.tile << std::endl;
+    if(!game->boardManager->getTopTileStack().getTileName().compare(msg->data.move.tile))
     {
         throw std::logic_error("Top of the tile stack and current tile move do not match");
     }
@@ -213,15 +214,15 @@ Move& TurnCoordinator::convertInMove(gameMessage *msg)
     {
         case 0:
             //No meeple
-            mv = new Move((Tile&)BoardManager::getTopTileStack(), msg->data.move.x, msg->data.move.y, msg->data.move.orientation);
+            mv = new Move((Tile&)game->boardManager->getTopTileStack(), msg->data.move.x, msg->data.move.y, msg->data.move.orientation);
             break;
         case 1:
             //Tiger
-            mv = new Move((Tile&)BoardManager::getTopTileStack(), msg->data.move.x, msg->data.move.y, msg->data.move.orientation, zone);
+            mv = new Move((Tile&)game->boardManager->getTopTileStack(), msg->data.move.x, msg->data.move.y, msg->data.move.orientation, zone);
             break;
         case 2:
             //Croc
-            mv = new Move((Tile&)BoardManager::getTopTileStack(), msg->data.move.x, msg->data.move.y, msg->data.move.orientation, true);
+            mv = new Move((Tile&)game->boardManager->getTopTileStack(), msg->data.move.x, msg->data.move.y, msg->data.move.orientation, true);
             break;
         default:
             throw std::logic_error("Unrecognized meeple type");
@@ -237,7 +238,7 @@ void TurnCoordinator::handleMessage(gameMessage *msg)
     switch(msg->messageType)
     {
         case 0:
-            BoardManager::inputTileStack(msg->data.tile.tileStack, msg->data.tile.lengthOfStack);
+            game->boardManager->inputTileStack(msg->data.tile.tileStack, msg->data.tile.lengthOfStack);
             break;
         case 1:
             if(msg->data.move.p1 != this->ourPlayerNumber)
@@ -245,11 +246,11 @@ void TurnCoordinator::handleMessage(gameMessage *msg)
                 Move mv = convertInMove(msg);
                 if(!(msg->data.move.placeable) && !(msg->data.move.pass))
                 {
-                    BoardManager::cannotPlaceTile(mv, this->otherPlayerNumber);
+                    game->boardManager->cannotPlaceTile(mv, this->otherPlayerNumber);
                 }
                 else if(!(msg->data.move.pass))
                 {
-                    BoardManager::makeMove(mv, this->otherPlayerNumber);
+                    game->boardManager->makeMove(mv, this->otherPlayerNumber);
                 }
                 else
                 {
@@ -259,11 +260,11 @@ void TurnCoordinator::handleMessage(gameMessage *msg)
             else if(msg->data.move.p1 == 3)
             {
                 Move mv = convertInMove(msg);
-                BoardManager::makeMove(mv, this->otherPlayerNumber);
+                game->boardManager->makeMove(mv, this->otherPlayerNumber);
             }
             else
             {
-                if(!strcmp((BoardManager::getTopTileStack()).getTileName().c_str(), msg->data.move.tile)) 
+                if(!strcmp((game->boardManager->getTopTileStack()).getTileName().c_str(), msg->data.move.tile)) 
                 {
                     throw std::logic_error("Top of the tile stack and current tile move do not match");
                 }
