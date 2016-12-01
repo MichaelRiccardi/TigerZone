@@ -1,14 +1,54 @@
 #include "../Core/Board/Board.h"
 #include "../Core/BoardManager/Move.h"
 #include "../Core/BoardManager/Coord.h"
+#include "../TigerZoneGame/TigerZoneGame.h"
+
 #include "gtest/gtest.h"
 #define GRID_SIZE 153
 
-TEST(BoardTests, getBoard)
-{
-    Board::set();
 
-    const Array<Array<Tile*>>& boardGrid = Board::getBoard();
+namespace {
+
+// The fixture for testing class Foo.
+class BoardTests : public ::testing::Test {
+
+ protected:
+  // You can remove any or all of the following functions if its body
+  // is empty.
+
+  BoardTests() {
+    // You can do set-up work for each test here.
+  }
+
+  virtual ~BoardTests() {
+    // You can do clean-up work that doesn't throw exceptions here.
+    delete game;
+  }
+
+  // If the constructor and destructor are not enough for setting up
+  // and cleaning up each test, you can define the following methods:
+
+  virtual void SetUp() {
+    // Code here will be called immediately after the constructor (right
+    // before each test).
+    game = new TigerZoneGame();
+  }
+
+  virtual void TearDown() {
+    // Code here will be called immediately after each test (right
+    // before the destructor).
+  }
+
+  // Objects declared here can be used by all tests in the test case for Foo.
+  TigerZoneGame* game;
+};
+
+
+TEST_F(BoardTests, getBoard)
+{
+
+
+    const Array<Array<Tile*>>& boardGrid = game->board->getBoard();
 
     EXPECT_EQ(boardGrid.getSize(), (unsigned int)GRID_SIZE);
 
@@ -23,11 +63,11 @@ TEST(BoardTests, getBoard)
     }
 }
 
-TEST(BoardTests, place)
+TEST_F(BoardTests, place)
 {
-    Board::set();
+    
 
-    const Array<Array<Tile*>>& boardGrid = Board::getBoard();
+    const Array<Array<Tile*>>& boardGrid = game->board->getBoard();
 
     unsigned int tileIDcounter = 0;
     Tile tile0 = Tile::CreateTileA(1, tileIDcounter, PreyType::None)[0];
@@ -64,41 +104,41 @@ TEST(BoardTests, place)
         }
         switch(m)
         {
-            case 0: Board::place(move0); return;
-            case 1: Board::place(move1); return;
-            case 2: Board::place(move2); return;
+            case 0: game->board->place(move0); return;
+            case 1: game->board->place(move1); return;
+            case 2: game->board->place(move2); return;
         }
     }
 }
 
-TEST(BoardTests, getFromCoord)
+TEST_F(BoardTests, getFromCoord)
 {
-    Board::set();
+    
 
     unsigned int tileIdCounter = 0;
     Tile tile = Tile::CreateTileD(1, tileIdCounter, PreyType::None)[0];
     const Coord& coord = Coord(10, 20);
     const Move& move = Move(tile, coord);
-    Board::place(move);
+    game->board->place(move);
 
-    EXPECT_EQ(Board::get(coord), &tile);
+    EXPECT_EQ(game->board->get(coord), &tile);
 }
 
-TEST(BoardTests, getFromTileId)
+TEST_F(BoardTests, getFromTileId)
 {
-    Board::set();
+    
 
     unsigned int tileIdCounter = 5;
     Tile tile = Tile::CreateTileD(1, tileIdCounter, PreyType::None)[0];
     const Move& move = Move(tile, 76, 76);
-    Board::place(move);
+    game->board->place(move);
 
-    EXPECT_EQ(Board::get((unsigned int) 5), &tile);
+    EXPECT_EQ(game->board->get((unsigned int) 5), &tile);
 }
 
-TEST(BoardTests, getBorderingTiles)
+TEST_F(BoardTests, getBorderingTiles)
 {
-    Board::set();
+    
 
     unsigned int tileIDcounter = 0;
 
@@ -125,16 +165,16 @@ TEST(BoardTests, getBorderingTiles)
     const Move& move5 = Move(tile5, 1 + dx[i], 1 + dy[i]);  i++;
     const Move& move6 = Move(tile6, 1 + dx[i], 1 + dy[i]); 
 
-    Board::place(moveCenter);
-    Board::place(move0);
-    Board::place(move1);
-    Board::place(move2);
-    Board::place(move3);
-    Board::place(move4);
-    Board::place(move5);
-    Board::place(move6);
+    game->board->place(moveCenter);
+    game->board->place(move0);
+    game->board->place(move1);
+    game->board->place(move2);
+    game->board->place(move3);
+    game->board->place(move4);
+    game->board->place(move5);
+    game->board->place(move6);
 
-    const Tile** borderingTiles = Board::getBorderingTiles(tileCenter);
+    const Tile** borderingTiles = game->board->getBorderingTiles(tileCenter);
 
     EXPECT_EQ(borderingTiles[0], &tile0);
     EXPECT_EQ(borderingTiles[1], &tile1);
@@ -146,9 +186,9 @@ TEST(BoardTests, getBorderingTiles)
     EXPECT_EQ(borderingTiles[7], nullptr); // left is empty
 }
 
-TEST(BoardTests, getCoordinatesFromTileId)
+TEST_F(BoardTests, getCoordinatesFromTileId)
 {
-    Board::set();
+    
 
     unsigned int tileIdCounter = 5;
     int x = 10;
@@ -157,31 +197,31 @@ TEST(BoardTests, getCoordinatesFromTileId)
     Tile tile = Tile::CreateTileD(1, tileIdCounter, PreyType::None)[0];
     const Coord& coord = Coord(x, y);
     const Move& move = Move(tile, coord);
-    Board::place(move);
+    game->board->place(move);
 
-    const Coord& result = Board::getCoordinatesFromTileId((unsigned int) 5);
+    const Coord& result = game->board->getCoordinatesFromTileId((unsigned int) 5);
 
     EXPECT_EQ(result.getX(), x);
     EXPECT_EQ(result.getY(), y);
 }
 
-TEST(BoardTests, getCoordinatesFromGridId)
+TEST_F(BoardTests, getCoordinatesFromGridId)
 {
-    Board::set();
+    
 
     int x = 10;
     int y = 20;
     int gridId = y * GRID_SIZE + x;
 
-    const Coord& result = Board::getCoordinatesFromGridId(gridId);
+    const Coord& result = game->board->getCoordinatesFromGridId(gridId);
 
     EXPECT_EQ(result.getX(), x);
     EXPECT_EQ(result.getY(), y);
 }
 
-TEST(BoardTests, getGridId)
+TEST_F(BoardTests, getGridId)
 {
-    Board::set();
+    
 
     int x = 10;
     int y = 20;
@@ -189,13 +229,13 @@ TEST(BoardTests, getGridId)
 
     const Coord& coord = Coord(x, y);
 
-    EXPECT_EQ(Board::getGridId(coord), (unsigned int)gridId);
+    EXPECT_EQ(game->board->getGridId(coord), (unsigned int)gridId);
 }
 
 
-TEST(BoardTests, getAvailableLocations)
+TEST_F(BoardTests, getAvailableLocations)
 {
-    Board::set();
+    
 
     unsigned int tileIDcounter = 0;
     Tile tile0 = Tile::CreateTileD(1, tileIDcounter, PreyType::None)[0];
@@ -206,11 +246,11 @@ TEST(BoardTests, getAvailableLocations)
     const Move& move1 = Move(tile1, 76, 75, 2); // rotate 180 degrees
     const Move& move2 = Move(tile2, 77, 75);
 
-    const std::unordered_set<unsigned int>& availableLocations = Board::getAvailableLocations();
+    const std::unordered_set<unsigned int>& availableLocations = game->board->getAvailableLocations();
 
     EXPECT_EQ(availableLocations.size(), (unsigned int)0);
 
-    Board::place(move0);
+    game->board->place(move0);
 
         const unsigned int size0 = 4;
         EXPECT_EQ(availableLocations.size(), size0);
@@ -220,10 +260,10 @@ TEST(BoardTests, getAvailableLocations)
 
         for(unsigned int i = 0; i < size0; i++)
         {
-            EXPECT_GT(availableLocations.count(Board::getGridId(x0[i], y0[i])), (unsigned int)0);
+            EXPECT_GT(availableLocations.count(game->board->getGridId(x0[i], y0[i])), (unsigned int)0);
         }
 
-    Board::place(move1);
+    game->board->place(move1);
 
         const unsigned int size1 = 6;
         EXPECT_EQ(availableLocations.size(), size1);
@@ -233,10 +273,10 @@ TEST(BoardTests, getAvailableLocations)
 
         for(unsigned int i = 0; i < size1; i++)
         {
-            EXPECT_GT(availableLocations.count(Board::getGridId(x1[i], y1[i])), (unsigned int)0);
+            EXPECT_GT(availableLocations.count(game->board->getGridId(x1[i], y1[i])), (unsigned int)0);
         }
 
-    Board::place(move2);
+    game->board->place(move2);
     
         const unsigned int size2 = 7;
         EXPECT_EQ(availableLocations.size(), size2);
@@ -246,6 +286,13 @@ TEST(BoardTests, getAvailableLocations)
 
         for(unsigned int i = 0; i < size2; i++)
         {
-            EXPECT_GT(availableLocations.count(Board::getGridId(x2[i], y2[i])), (unsigned int)0);
+            EXPECT_GT(availableLocations.count(game->board->getGridId(x2[i], y2[i])), (unsigned int)0);
         }
+}
+
+};
+
+int main(int argc, char **argv) {
+  ::testing::InitGoogleTest(&argc, argv);
+  return RUN_ALL_TESTS();
 }

@@ -2,34 +2,71 @@
 #include "../Core/BoardManager/Move.h"
 #include "../Core/BoardManager/Coord.h"
 #include "../Core/BoardManager/BoardManager.h"
+#include "../TigerZoneGame/TigerZoneGame.h"
 #include "gtest/gtest.h"
 #define GRID_SIZE 153
 
+namespace {
+
+// The fixture for testing class Foo.
+class BoardManagerTests : public ::testing::Test {
+
+ protected:
+  // You can remove any or all of the following functions if its body
+  // is empty.
+
+  BoardManagerTests() {
+    // You can do set-up work for each test here.
+  }
+
+  virtual ~BoardManagerTests() {
+    // You can do clean-up work that doesn't throw exceptions here.
+    delete game;
+
+  }
+
+  // If the constructor and destructor are not enough for setting up
+  // and cleaning up each test, you can define the following methods:
+
+  virtual void SetUp() {
+    // Code here will be called immediately after the constructor (right
+    // before each test).
+    game = new TigerZoneGame();
+  }
+
+  virtual void TearDown() {
+    // Code here will be called immediately after each test (right
+    // before the destructor).
+  }
+
+  // Objects declared here can be used by all tests in the test case for Foo.
+  TigerZoneGame* game;
+};
 
 
-TEST(BoardManager, inputTileStack)
+TEST_F(BoardManagerTests, inputTileStack)
 {
     char testingTileStack[31] = "JJTJXJLJL-TJTJ-JJJJ-LJTJ-LJJJ-";
     //printf("TileStack %s\n", testingTileStack);
-    BoardManager::inputTileStack(testingTileStack, 6);
+    game->boardManager->inputTileStack(testingTileStack, 6);
 
-    EXPECT_TRUE(BoardManager::tileStack->front().getTileName().compare("JJTJX"));
-    BoardManager::tileStack->pop();
+    EXPECT_TRUE(game->boardManager->tileStack->front().getTileName().compare("JJTJX"));
+    game->boardManager->tileStack->pop();
 
-    EXPECT_TRUE(BoardManager::tileStack->front().getTileName().compare("JLJL-"));
-    BoardManager::tileStack->pop();
+    EXPECT_TRUE(game->boardManager->tileStack->front().getTileName().compare("JLJL-"));
+    game->boardManager->tileStack->pop();
 
-    EXPECT_TRUE(BoardManager::tileStack->front().getTileName().compare("TJTJ-"));
-    BoardManager::tileStack->pop();
+    EXPECT_TRUE(game->boardManager->tileStack->front().getTileName().compare("TJTJ-"));
+    game->boardManager->tileStack->pop();
 
-    EXPECT_TRUE(BoardManager::tileStack->front().getTileName().compare("JJJJ-"));
-    BoardManager::tileStack->pop();
+    EXPECT_TRUE(game->boardManager->tileStack->front().getTileName().compare("JJJJ-"));
+    game->boardManager->tileStack->pop();
 
-    EXPECT_TRUE(BoardManager::tileStack->front().getTileName().compare("LJTJ-"));
-    BoardManager::tileStack->pop();
+    EXPECT_TRUE(game->boardManager->tileStack->front().getTileName().compare("LJTJ-"));
+    game->boardManager->tileStack->pop();
 
-    EXPECT_TRUE(BoardManager::tileStack->front().getTileName().compare("LJJJ-"));
-    BoardManager::tileStack->pop();
+    EXPECT_TRUE(game->boardManager->tileStack->front().getTileName().compare("LJJJ-"));
+    game->boardManager->tileStack->pop();
 
 }
 
@@ -87,17 +124,17 @@ bool validMovesMatch(std::vector<Move>& actualValidMoves, Tile& tile, bool print
     return allGood;
 }
 
-TEST(BoardManagerTests, getBoard)
+TEST_F(BoardManagerTests, getBoard)
 {
-    BoardManager::gameInit();
-    EXPECT_EQ(&BoardManager::getBoard(), &Board::getBoard());
+    
+    EXPECT_EQ(&game->boardManager->getBoard(), &game->board->getBoard());
 }
 
-TEST(BoardManagerTests, gameInit)
+TEST_F(BoardManagerTests, gameInit)
 {
-    BoardManager::gameInit();
+    
 
-    const Array<Array<Tile*>>& boardGrid = BoardManager::getBoard();
+    const Array<Array<Tile*>>& boardGrid = game->boardManager->getBoard();
 
     for(unsigned int i = 0; i < GRID_SIZE; i++)
     {
@@ -120,14 +157,14 @@ TEST(BoardManagerTests, gameInit)
     }
 }
 
-TEST(BoardManagerTests, getTileStack)
+TEST_F(BoardManagerTests, getTileStack)
 {
-    BoardManager::gameInit();
+    
     int actualTileCounts[NUM_TILES]   = { 0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0 };
     int expectedTileCounts[NUM_TILES] = { 2,4,1,3,2,5,3,3,2,1,2,1,2,1,2,5,3,2,4,1,2,8,9,4,1,1,1,2 };
     expectedTileCounts[3]--; // starting Tile
 
-    TileStack* tileStack = BoardManager::getTileStack();
+    TileStack* tileStack = game->boardManager->getTileStack();
     std::queue<Tile*> tileQueue1 = tileStack->getQueue((unsigned int) 1);
     std::queue<Tile*> tileQueue2 = tileStack->getQueue((unsigned int) 2);
 
@@ -243,11 +280,11 @@ TEST(BoardManagerTests, getTileStack)
     }
 }
 
-TEST(BoardManagerTests, getValidMoves)
+TEST_F(BoardManagerTests, getValidMoves)
 {
     //ASSERT_EQ("getValidMoves is producing intended outputs but the test itself hasn't been fully updated", "");
 
-    BoardManager::gameInit();
+    
 
     Array<Array<Tile>> tiles = Tile::CreateTiles();
 
@@ -255,7 +292,7 @@ TEST(BoardManagerTests, getValidMoves)
     Coord coord1 = Coord(76, 75);
     const Move& move1 = Move(tile1, coord1, 2, (unsigned int) 1); // rotation = 2, meeple at edge 1
 
-    std::vector<Move> validMoves1 = BoardManager::getValidMoves(tile1, 1);
+    std::vector<Move> validMoves1 = game->boardManager->getValidMoves(tile1, 1);
 
     std::string expectedValidMoves1[66] = { "PLACE TILE (id) 25 AT 76 75 ROTATION 90",
     "PLACE TILE (id) 25 AT 76 75 ROTATION 90 MEEPLE (edge) 0",
@@ -329,7 +366,7 @@ TEST(BoardManagerTests, getValidMoves)
     EXPECT_TRUE(validMovesMatch(validMoves1, tile1, false, expectedValidMoves1, 66));// bool printAll, std::string[] expectedValidMoves, unsigned int expectedValidMovesCount)
 
     EXPECT_FALSE(tile1.isPlaced());
-    BoardManager::makeMove(move1, 1);
+    game->boardManager->makeMove(move1, 1);
     EXPECT_TRUE(tile1.isPlaced());
     EXPECT_EQ(tile1.getRotation(), (unsigned int)2);
 
@@ -337,7 +374,7 @@ TEST(BoardManagerTests, getValidMoves)
     Coord coord2 = Coord(77, 75);
     Move move2 = Move(tile2, coord2, 0, true); // rotation = 0, croc
 
-    std::vector<Move> validMoves2 = BoardManager::getValidMoves(tile2, 2);
+    std::vector<Move> validMoves2 = game->boardManager->getValidMoves(tile2, 2);
 
     std::string expectedValidMoves2[80] = { "PLACE TILE (id) 59 AT 76 74 ROTATION 180",
         "PLACE TILE (id) 59 AT 76 74 ROTATION 180 MEEPLE (edge) 0",
@@ -425,7 +462,7 @@ TEST(BoardManagerTests, getValidMoves)
     //ASSERT_EQ(1,2);
 
     EXPECT_FALSE(tile2.isPlaced());
-    BoardManager::makeMove(move2, 2);
+    game->boardManager->makeMove(move2, 2);
     EXPECT_TRUE(tile2.isPlaced());
     EXPECT_EQ(tile2.getRotation(), (unsigned int)0);
 
@@ -433,7 +470,7 @@ TEST(BoardManagerTests, getValidMoves)
     Coord coord3 = Coord(77, 76);
     Move move3 = Move(tile3, coord3, 2, (unsigned int) 0); // rotation = 2, meeple at edge 0
 
-    std::vector<Move> validMoves3 = BoardManager::getValidMoves(tile3, 1);
+    std::vector<Move> validMoves3 = game->boardManager->getValidMoves(tile3, 1);
 
     std::string expectedValidMoves3[74] = { "PLACE TILE (id) 28 AT 77 74 ROTATION 180",
         "PLACE TILE (id) 28 AT 77 74 ROTATION 180 MEEPLE (edge) 0",
@@ -514,32 +551,32 @@ TEST(BoardManagerTests, getValidMoves)
     EXPECT_TRUE(validMovesMatch(validMoves3, tile3, false, expectedValidMoves3, 74));
 
     EXPECT_FALSE(tile3.isPlaced());
-    BoardManager::makeMove(move3, 1);
+    game->boardManager->makeMove(move3, 1);
     EXPECT_TRUE(tile3.isPlaced());
     EXPECT_EQ(tile3.getRotation(), (unsigned int)2);
 }
 
 // Should this also test the calls of Regions::addConection,addMeeple,addCroc, as applicable?
-TEST(BoardManagerTests, makeMove)
+TEST_F(BoardManagerTests, makeMove)
 { 
-    BoardManager::gameInit();
+    
 
     unsigned int tileIdCounter = 100;
 
-    TileStack* tileStack = BoardManager::getTileStack();
+    TileStack* tileStack = game->boardManager->getTileStack();
     unsigned int initalSize = tileStack->getSize();
 
     Tile& tile1 = Tile::CreateTileJ(1, tileIdCounter, PreyType::None)[0];
     Coord coord1 = Coord(76, 75);
     const Move& move1 = Move(tile1, coord1, 2);
 
-    EXPECT_EQ(nullptr, Board::get(coord1));
+    EXPECT_EQ(nullptr, game->board->get(coord1));
     EXPECT_EQ(tileStack->getSize(), initalSize);
     EXPECT_FALSE(tile1.isPlaced());
     
-    BoardManager::makeMove(move1, 1);
+    game->boardManager->makeMove(move1, 1);
 
-    EXPECT_EQ(&tile1, Board::get(coord1));
+    EXPECT_EQ(&tile1, game->board->get(coord1));
     EXPECT_EQ(tileStack->getSize(), initalSize - 1);
     EXPECT_TRUE(tile1.isPlaced());
 
@@ -547,13 +584,13 @@ TEST(BoardManagerTests, makeMove)
     Coord coord2 = Coord(77, 75);
     const Move& move2 = Move(tile2, coord2);    
 
-    EXPECT_EQ(nullptr, Board::get(coord2));
+    EXPECT_EQ(nullptr, game->board->get(coord2));
     EXPECT_EQ(tileStack->getSize(), initalSize - 1);
     EXPECT_FALSE(tile2.isPlaced());
 
-    BoardManager::makeMove(move2, 2);
+    game->boardManager->makeMove(move2, 2);
 
-    EXPECT_EQ(&tile2, Board::get(coord2));
+    EXPECT_EQ(&tile2, game->board->get(coord2));
     EXPECT_EQ(tileStack->getSize(), initalSize - 2);
     EXPECT_TRUE(tile2.isPlaced());
 
@@ -561,21 +598,21 @@ TEST(BoardManagerTests, makeMove)
     Coord coord3 = Coord(77, 76);
     const Move& move3 = Move(tile3, coord3, 2);
 
-    EXPECT_EQ(nullptr, Board::get(coord3));
+    EXPECT_EQ(nullptr, game->board->get(coord3));
     EXPECT_EQ(tileStack->getSize(), initalSize - 2);
     EXPECT_FALSE(tile3.isPlaced());
 
-    BoardManager::makeMove(move3, 1);
+    game->boardManager->makeMove(move3, 1);
 
-    EXPECT_EQ(&tile3, Board::get(coord3));
+    EXPECT_EQ(&tile3, game->board->get(coord3));
     EXPECT_EQ(tileStack->getSize(), initalSize - 3);
     EXPECT_TRUE(tile3.isPlaced()); 
 }
-TEST(BoardManagerTests, isSurrounded)
+TEST_F(BoardManagerTests, isSurrounded)
 {
-    BoardManager::gameInit();
+    
     Coord center = Coord(76, 76);
-    unsigned int centerTileId = Board::get(center)->getId();
+    unsigned int centerTileId = game->board->get(center)->getId();
 
     unsigned int tileIdCounter = 100;
 
@@ -593,13 +630,15 @@ TEST(BoardManagerTests, isSurrounded)
     int dx[8] = { -1, 0, 1, 1, 1, 0, -1, -1 };
     int dy[8] = { 1, 1, 1, 0, -1, -1, -1, 0 };
 
-    EXPECT_EQ(BoardManager::isSurrounded(centerTileId), (unsigned int)0);
+    EXPECT_EQ(game->boardManager->isSurrounded(centerTileId), (unsigned int)0);
 
     for(unsigned int i = 0; i < 8; i++)
     {
         Move move = Move(tiles[i], 76 + dx[i], 76 + dy[i]);
-        Board::place(move);
-        EXPECT_TRUE(BoardManager::getBoard()[76 + dx[i]][76 + dy[i]] == &tiles[i]);
-        EXPECT_EQ(BoardManager::isSurrounded(centerTileId), i+1);
+        game->board->place(move);
+        EXPECT_TRUE(game->boardManager->getBoard()[76 + dx[i]][76 + dy[i]] == &tiles[i]);
+        EXPECT_EQ(game->boardManager->isSurrounded(centerTileId), i+1);
     }
 }
+
+};

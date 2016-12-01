@@ -1,13 +1,50 @@
+#include "../TigerZoneGame/TigerZoneGame.h"
 #include "../ExternalPlayers/TurnCoordinator/TurnCoordinator.h"
 #include "../Core/BoardManager/BoardManager.h"
 #include <string.h>
 #include "gtest/gtest.h"
 
 
+namespace {
 
-TEST(TurnCoordinator, convertEdgeToZone)
+class TurnCoordinatorTests : public ::testing::Test {
+
+ protected:
+  // You can remove any or all of the following functions if its body
+  // is empty.
+
+  TurnCoordinatorTests() {
+    // You can do set-up work for each test here.
+  }
+
+  virtual ~TurnCoordinatorTests() {
+    // You can do clean-up work that doesn't throw exceptions here.
+    delete game;
+
+  }
+
+  // If the constructor and destructor are not enough for setting up
+  // and cleaning up each test, you can define the following methods:
+
+  virtual void SetUp() {
+    // Code here will be called immediately after the constructor (right
+    // before each test).
+    game = new TigerZoneGame();
+  }
+
+  virtual void TearDown() {
+    // Code here will be called immediately after each test (right
+    // before the destructor).
+  }
+
+  // Objects declared here can be used by all tests in the test case for Foo.
+  TigerZoneGame* game;
+};
+
+
+TEST_F(TurnCoordinatorTests, convertEdgeToZone)
 {
-    TurnCoordinator trn = TurnCoordinator(1);
+    TurnCoordinator trn = TurnCoordinator(1, game);
     int returnValue;
     returnValue = trn.convertEdgeToZone(0);
     ASSERT_EQ(returnValue, 1);
@@ -79,10 +116,9 @@ bool getHasCrocodile() const;
 bool getPickupMeeple() const;
 */
 
-TEST(TurnCoordinator, convertInMove)
+TEST_F(TurnCoordinatorTests, convertInMove)
 {
-    TurnCoordinator trn = TurnCoordinator(1);
-    BoardManager::gameInit();
+    TurnCoordinator trn = TurnCoordinator(1, game);
     gameMessage *msg = new gameMessage;
     msg->messageType = 1;
     msg->data.move.p1 = 1;
@@ -153,11 +189,10 @@ gameMessage trn.buildResponse(Move& move)
 */
 
 
-TEST(TurnCoordinator, buildResponse)
+TEST_F(TurnCoordinatorTests, buildResponse)
 {
-    TurnCoordinator trn = TurnCoordinator(1);
-    BoardManager::gameInit();
-    Move *mv = new Move(BoardManager::getTopTileStack(), 1, 2, 0, (unsigned int)4);
+    TurnCoordinator trn = TurnCoordinator(1, game);
+    Move *mv = new Move(game->boardManager->getTopTileStack(), 1, 2, 0, (unsigned int)4);
 
     gameMessage *gMsg = new gameMessage;
     trn.buildResponse(*mv, gMsg);
@@ -167,3 +202,5 @@ TEST(TurnCoordinator, buildResponse)
     ASSERT_EQ(gMsg->data.move.orientation, 0);
     ASSERT_EQ(gMsg->data.move.zone, trn.convertEdgeToZone(4)); //Have to account for changing from edge 4 -> zone 6
 }
+
+};

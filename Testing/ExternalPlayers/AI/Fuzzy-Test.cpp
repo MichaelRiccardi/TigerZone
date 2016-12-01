@@ -3,7 +3,43 @@
 #include "../Core/BoardManager/BoardManager.h"
 #include "gtest/gtest.h"
 
-TEST(FuzzyTests, getTurnScore)
+namespace {
+
+class AITests : public ::testing::Test {
+
+ protected:
+  // You can remove any or all of the following functions if its body
+  // is empty.
+
+  AITests() {
+    // You can do set-up work for each test here.
+  }
+
+  virtual ~AITests() {
+    // You can do clean-up work that doesn't throw exceptions here.
+    delete game;
+
+  }
+
+  // If the constructor and destructor are not enough for setting up
+  // and cleaning up each test, you can define the following methods:
+
+  virtual void SetUp() {
+    // Code here will be called immediately after the constructor (right
+    // before each test).
+    game = new TigerZoneGame();
+  }
+
+  virtual void TearDown() {
+    // Code here will be called immediately after each test (right
+    // before the destructor).
+  }
+
+  // Objects declared here can be used by all tests in the test case for Foo.
+  TigerZoneGame* game;
+};
+
+TEST_F(AITests, getTurnScore)
 {
     //I convert the expected and return values to ints to account for some loss in accuracy in ownership
     struct Graph g;
@@ -103,7 +139,7 @@ TEST(FuzzyTests, getTurnScore)
     EXPECT_EQ((int)fs.getTurnScore(), (int) expectedScore);
 }
 
-TEST(FuzzyTests, getResults)
+TEST_F(AITests, getResults)
 {
     FuzzyLogic fz;
     struct AIMove mv;
@@ -169,22 +205,23 @@ TEST(FuzzyTests, getResults)
 }
 
 
-TEST(AITests, setPlayerNumber)
+TEST_F(AITests, setPlayerNumber)
 {
-    AI::setPlayerNumber(0);
-    EXPECT_EQ(AI::myPlayerNumber, (unsigned int)0);
+    game->ai->setPlayerNumber(0);
+    EXPECT_EQ(game->ai->myPlayerNumber, (unsigned int)0);
 
-    AI::setPlayerNumber(1);
-    EXPECT_EQ(AI::myPlayerNumber, (unsigned int)1);
+    game->ai->setPlayerNumber(1);
+    EXPECT_EQ(game->ai->myPlayerNumber, (unsigned int)1);
 
-    AI::setPlayerNumber(2);
-    EXPECT_EQ(AI::myPlayerNumber, (unsigned int)2);
+    game->ai->setPlayerNumber(2);
+    EXPECT_EQ(game->ai->myPlayerNumber, (unsigned int)2);
 }
 
-TEST(AITests, chooseTurn)
+TEST_F(AITests, chooseTurn)
 {
-    BoardManager::gameInit();
-    AI::setPlayerNumber(1);
-    Move chosenMove = AI::chooseTurn(BoardManager::getTopTileStack());
+    game->ai->setPlayerNumber(1);
+    Move chosenMove = game->ai->chooseTurn(game->boardManager->getTopTileStack());
     EXPECT_EQ(chosenMove.getCoord().getX(), 9);
 }
+
+};
