@@ -72,16 +72,21 @@ void Tournament_Protocol (int sock)
    char buffer[256];
    char pid[] = "PLAYER 1";
 
-   write(sock,"THIS IS SPARTA!\r\n",15);
+   write(sock,"THIS IS SPARTA!\r\n",17);
+   printf("sent message\n");
 
    bzero(buffer,256);
    read(sock,buffer,255);
-   write(sock,"HELLO!",6);
+   printf("recv'd message\n");
+   write(sock,"HELLO!\n",7);
+   printf("sent message\n");
 
    bzero(buffer,256);
    read(sock,buffer,255);
+   printf("recv'd message\n");
    sprintf(buffer,"WELCOME %s PLEASE WAIT FOR THE NEXT CHALLENGE\r\n",pid);
    write(sock,buffer,255);
+   printf("sent message\n");
 
 //CHALLENGE PROTOCOL
    int totalRounds = 1;
