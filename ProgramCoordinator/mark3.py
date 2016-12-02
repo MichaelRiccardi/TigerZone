@@ -2,8 +2,10 @@
 import socket
 import sys
 import re
+import threading
+import time
  
-s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+tournamentSocket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
 
 currentIndex = 0
 
@@ -11,12 +13,13 @@ pid = ""
 dictionary = {}
 startingTile = ""
 
+#Used for the main client
 def socketSetup(port):          # Create a socket object
     host = "localhost"          # Get local machine name
     port = int(port)            # Reserve a port for your service.
-    s.connect((host, port))     # connect
+    tournamentSocket.connect((host, port))     # connect
 
-
+#Used for the infinite read by the main client
 def readlines(sock, recv_buffer=4096, delim='\n'):
     buffer = ''
     valid = True
@@ -31,6 +34,7 @@ def readlines(sock, recv_buffer=4096, delim='\n'):
             yield line
     return
 
+#First part of the initial authentication
 def joinTourn(tokens):
     print tokens
     usrIn = "JOIN " + raw_input("Enter tournament password : ") + "\r\n"
@@ -38,6 +42,7 @@ def joinTourn(tokens):
     s.sendall(usrIn)
     print "finished send"
 
+#Final part of the authentication
 def identifyMyself(tokens):
     print tokens
     usrIn = "I AM " + raw_input("Enter usr password : ") + "\r\n"
