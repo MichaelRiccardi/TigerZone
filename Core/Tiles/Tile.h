@@ -13,33 +13,6 @@
 #define NUM_TILE_EDGES_PER_SIDE     3
 #define NUM_TILE_EDGES              (NUM_TILE_EDGES_PER_SIDE * NUM_TILE_SIDES)
 
-/************************************************************************************************************\
-                        Edges for tile:
-
-        +-----------------------------------------+
-        |  +  EDGE 0        EDGE 1         EDGE2+ |
-        |    +                                +   |
-        |EDGE11+----------------------------+     |
-        |      |                            |EDGE3|
-        |      |                            |     |
-        |      |                            |     |
-        |      |                            |     |
-        |      |                            |     |
-        |EDGE10|          EDGE 12           |EDGE4|
-        |      |                            |     |
-        |      |                            |     |
-        |      |                            |     |
-        |      |                            |     |
-        |      |                            |     |
-        |      |                            |     |
-        |EDGE9 +----------------------------+EDGE5|
-        |   +                                +    |
-        | + EDGE 8          EDGE 7       EDGE6 +  |
-        +-----------------------------------------+
-
-
-\********************************************************************************************************/
-
 class Tile {
     public:
         /// Creates an array of tiles with the standard number of tiles for the game and assigns each tile a unique id
